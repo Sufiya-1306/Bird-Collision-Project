@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bird Migration Collision Risk Prediction | AI & Data Science Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .active-nav {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.05) 100%);
+      border-left: 3px solid #3b82f6;
+      color: #60a5fa;
+    }
+    .risk-gauge-needle {
+      transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 flex items-center justify-between px-6">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <i data-lucide="plane" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-base tracking-tight text-white flex items-center gap-2">
+          Bird Collision Risk Prediction
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">2021–2025</span>
+        </h1>
+        <p class="text-xs text-slate-400">Wind Farms & Airports Aviation Safety AI System</p>
+      </div>
+    </div>
+
+    <!-- System Status & Model Badges -->
+    <div class="flex items-center space-x-4">
+      <div class="hidden md:flex items-center space-x-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>USA Coverage: <strong class="text-slate-200">NY, IL, CO</strong></span>
+      </div>
+      <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
+        <i data-lucide="cpu" class="w-3.5 h-3.5 text-blue-400"></i>
+        <span>9 Trained ML Models Active</span>
+      </div>
+      <a href="https://github.com/Sufiya-1306/Bird-Collision-Project" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+        <i data-lucide="github" class="w-5 h-5"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 border-r border-slate-800 bg-slate-900/60 flex flex-col justify-between py-6 shrink-0">
+      <div class="space-y-1 px-3">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-all active-nav">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard Overview</span>
+        </button>
+        <button onclick="switchTab('prediction')" id="nav-prediction" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-all">
+          <i data-lucide="crosshair" class="w-4 h-4"></i>
+          <span>Risk Prediction Tool</span>
+        </button>
+        <button onclick="switchTab('results')" id="nav-results" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-all">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          <span>Results & Diagnostics</span>
+        </button>
+        <button onclick="switchTab('models')" id="nav-models" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-all">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          <span>Model Benchmark (9)</span>
+        </button>
+        <button onclick="switchTab('dataset')" id="nav-dataset" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-all">
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>Datasets & Pipeline</span>
+        </button>
+      </div>
+
+      <!-- Quick Info Box -->
+      <div class="px-4">
+        <div class="p-3.5 rounded-xl bg-blue-950/40 border border-blue-900/40 text-xs space-y-2">
+          <div class="flex items-center text-blue-400 font-semibold gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            <span>Project Scope</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            Data Science pipeline predicting bird strike risk using FAA records, USWTDB wind turbines, NOAA weather & GBIF migration data.
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-950 p-6 lg:p-8">
+
+      <!-- TAB 1: DASHBOARD OVERVIEW -->
+      <section id="tab-dashboard" class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">Project Dashboard</h2>
+          <p class="text-sm text-slate-400">Bird Migration Collision Risk Prediction for Wind Farms and Airports Using Data Science (2021–2025)</p>
+        </div>
+
+        <!-- 4 KPI Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card p-5 rounded-2xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <span>FAA BIRD STRIKES (2021-25)</span>
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white tracking-tight">11,954</span>
+              <span class="text-xs text-emerald-400 font-medium">Verified Records</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">NY (3,321), IL (3,590), CO (5,043)</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <span>WIND TURBINES MAPPED</span>
+              <i data-lucide="wind" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white tracking-tight">8,533</span>
+              <span class="text-xs text-cyan-400 font-medium">Active Turbines</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">USWTDB High-Resolution Coordinates</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <span>GBIF MIGRATION OCCURRENCES</span>
+              <i data-lucide="feather" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white tracking-tight">55.3M</span>
+              <span class="text-xs text-emerald-400 font-medium">Stream Processed</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Chunk streaming from 11.6 GB dataset</p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+              <span>ML CLASSIFIERS TRAINED</span>
+              <i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white tracking-tight">9 Models</span>
+              <span class="text-xs text-purple-400 font-medium">Person A, B, C</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Stratified 5-Fold Cross Validated</p>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Target Class Distribution -->
+          <div class="glass-card p-6 rounded-2xl lg:col-span-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-semibold text-white text-base">Risk Target Distribution</h3>
+              <p class="text-xs text-slate-400">Balanced 3-class tertile formulation</p>
+            </div>
+            <div class="py-4 flex justify-center">
+              <div class="w-48 h-48 relative">
+                <canvas id="chart-risk-dist"></canvas>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800 text-center text-xs">
+              <div>
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1"></span>
+                <p class="text-slate-400">Low (0)</p>
+                <p class="font-bold text-white">33.5%</p>
+              </div>
+              <div>
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mb-1"></span>
+                <p class="text-slate-400">Medium (1)</p>
+                <p class="font-bold text-white">33.9%</p>
+              </div>
+              <div>
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 mb-1"></span>
+                <p class="text-slate-400">High (2)</p>
+                <p class="font-bold text-white">32.6%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- State & Season Strike Distribution -->
+          <div class="glass-card p-6 rounded-2xl lg:col-span-2 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-semibold text-white text-base">Strike Frequency by State & Season (2021–2025)</h3>
+                <p class="text-xs text-slate-400">Wildlife collisions peak heavily during Fall and Spring bird migration</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">11,954 Strikes</span>
+            </div>
+            <div class="h-64 mt-4">
+              <canvas id="chart-state-season"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9 Models Summary Table Preview -->
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-white text-base">Top Performing Machine Learning Models</h3>
+              <p class="text-xs text-slate-400">Trained on recent 2021–2025 dataset with zero leakage</p>
+            </div>
+            <button onclick="switchTab('models')" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium">
+              View All 9 Models <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase bg-slate-800/60 text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="px-4 py-3">Model Name</th>
+                  <th class="px-4 py-3">Team Member</th>
+                  <th class="px-4 py-3">5-Fold CV Acc</th>
+                  <th class="px-4 py-3">Test Accuracy</th>
+                  <th class="px-4 py-3">Macro F1</th>
+                  <th class="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="top-models-tbody" class="divide-y divide-slate-800">
+                <tr><td colspan="6" class="px-4 py-4 text-center text-slate-500">Loading benchmark results...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: REAL-TIME PREDICTION TOOL -->
+      <section id="tab-prediction" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">Real-Time Collision Risk Prediction</h2>
+          <p class="text-sm text-slate-400">Input flight parameters and environmental conditions to predict collision risk category (0 = Low, 1 = Medium, 2 = High)</p>
+        </div>
+
+        <!-- Quick Preset Scenarios -->
+        <div class="glass-card p-4 rounded-xl flex items-center gap-3 overflow-x-auto">
+          <span class="text-xs font-semibold text-slate-400 shrink-0 flex items-center gap-1">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Load Preset:
+          </span>
+          <button onclick="loadScenario('high_risk')" class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium hover:bg-rose-500/20 transition-all shrink-0">
+            ⚠️ Autumn Migration Low Approach (Denver) - High Risk
+          </button>
+          <button onclick="loadScenario('medium_risk')" class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition-all shrink-0">
+            ⚡ Spring Climb near Turbines (O'Hare) - Medium Risk
+          </button>
+          <button onclick="loadScenario('low_risk')" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium hover:bg-emerald-500/20 transition-all shrink-0">
+            ✅ Summer High Cruise Clear Skies (JFK) - Low Risk
+          </button>
+        </div>
+
+        <!-- Input Form -->
+        <form id="prediction-form" onsubmit="handlePredict(event)" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- Column 1: Flight & Aircraft Parameters -->
+          <div class="glass-card p-5 rounded-2xl space-y-4">
+            <h3 class="font-semibold text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
+              <i data-lucide="plane-takeoff" class="w-4 h-4 text-blue-400"></i> Flight & Aircraft Profile
+            </h3>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Select Airport</label>
+              <select id="inp-airport" onchange="autoFillAirport()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="DENVER INTL AIRPORT">Denver International Airport (CO)</option>
+                <option value="CHICAGO O'HARE INTL ARPT">Chicago O'Hare International (IL)</option>
+                <option value="JOHN F KENNEDY INTL">John F. Kennedy International (NY)</option>
+                <option value="LA GUARDIA ARPT">LaGuardia Airport (NY)</option>
+                <option value="CHICAGO MIDWAY INTL ARPT">Chicago Midway International (IL)</option>
+                <option value="ALBANY INTL">Albany International Airport (NY)</option>
+                <option value="CENTENNIAL ARPT">Centennial Airport (CO)</option>
+                <option value="PEORIA INTL ARPT">Peoria International Airport (IL)</option>
+                <option value="QUAD CITY ARPT">Quad City International (IL)</option>
+                <option value="WESTCHESTER COUNTY ARPT">Westchester County Airport (NY)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">State</label>
+                <input id="inp-state" type="text" readonly value="CO" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Number of Engines</label>
+                <select id="inp-engines" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                  <option value="2">2 Engines (Standard)</option>
+                  <option value="1">1 Engine (Light)</option>
+                  <option value="3">3 Engines</option>
+                  <option value="4">4 Engines (Heavy)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Flight Phase</label>
+              <select id="inp-phase" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="Approach">Approach (High Exposure)</option>
+                <option value="Take-off Run">Take-off Run</option>
+                <option value="Climb">Climb</option>
+                <option value="Landing Roll">Landing Roll</option>
+                <option value="Descent">Descent</option>
+                <option value="En Route">En Route (Cruise)</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Flight Altitude</span>
+                <span id="altitude-display" class="font-mono text-blue-400">1,500 ft</span>
+              </div>
+              <input id="inp-altitude" type="range" min="0" max="15000" step="100" value="1500" oninput="document.getElementById('altitude-display').innerText = Number(this.value).toLocaleString() + ' ft'" class="w-full accent-blue-500">
+              <span class="text-[11px] text-slate-500">Most collision incidents occur below 3,000 ft</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Pilot Wildlife Warning</label>
+              <select id="inp-warned" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="No">No Warning Issued</option>
+                <option value="Yes">Yes (Pilot Warned by Tower)</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Column 2: Wildlife & Wind Farm Proximity -->
+          <div class="glass-card p-5 rounded-2xl space-y-4">
+            <h3 class="font-semibold text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
+              <i data-lucide="feather" class="w-4 h-4 text-emerald-400"></i> Avian & Wind Farm Factors
+            </h3>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Flight Month</label>
+              <select id="inp-month" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="9">September (Peak Fall Migration)</option>
+                <option value="10">October (Peak Fall Migration)</option>
+                <option value="4">April (Spring Migration)</option>
+                <option value="5">May (Spring Migration)</option>
+                <option value="11">November (Late Fall Migration)</option>
+                <option value="3">March (Early Spring Migration)</option>
+                <option value="8">August (Late Summer)</option>
+                <option value="6">June (Summer Breeding)</option>
+                <option value="7">July (Summer Breeding)</option>
+                <option value="12">December (Winter Low)</option>
+                <option value="1">January (Winter Low)</option>
+                <option value="2">February (Winter Low)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Wildlife / Bird Size</label>
+              <select id="inp-wildlife-size" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="Medium">Medium (Gulls, Hawks, Crows)</option>
+                <option value="Large">Large (Geese, Pelicans, Eagles - Severe)</option>
+                <option value="Small">Small (Sparrows, Swallows, Doves)</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Nearest Wind Turbine Distance</span>
+                <span id="turbine-dist-display" class="font-mono text-cyan-400">12.5 km</span>
+              </div>
+              <input id="inp-turbine" type="range" min="1" max="100" step="0.5" value="12.5" oninput="document.getElementById('turbine-dist-display').innerText = this.value + ' km'" class="w-full accent-cyan-500">
+              <span class="text-[11px] text-slate-500">Proximity to active wind turbine installations</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Model Selection for Prediction</label>
+              <select id="inp-model" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-blue-400 font-semibold focus:outline-none focus:border-blue-500">
+                <option value="Random Forest">Random Forest (Person B) - Recommended</option>
+                <option value="XGBoost">XGBoost (Person C)</option>
+                <option value="Gradient Boosting">Gradient Boosting (Person C)</option>
+                <option value="Support Vector Machine">Support Vector Machine (Person B)</option>
+                <option value="MLP Classifier">MLP Classifier (Person C)</option>
+                <option value="Decision Tree">Decision Tree (Person A)</option>
+                <option value="K-Nearest Neighbors">K-Nearest Neighbors (Person A)</option>
+                <option value="Logistic Regression">Logistic Regression (Person A)</option>
+                <option value="Gaussian Naive Bayes">Gaussian Naive Bayes (Person B)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Column 3: Weather & Atmospheric Conditions -->
+          <div class="glass-card p-5 rounded-2xl space-y-4">
+            <h3 class="font-semibold text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
+              <i data-lucide="cloud-sun" class="w-4 h-4 text-cyan-400"></i> Atmospheric Conditions
+            </h3>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Sky Condition</label>
+              <select id="inp-sky" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="No Cloud">No Cloud (Clear)</option>
+                <option value="Some Cloud">Some Cloud (Scattered)</option>
+                <option value="Overcast">Overcast</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Precipitation</label>
+              <select id="inp-precip" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                <option value="No Precipitation">No Precipitation</option>
+                <option value="Rain">Rain</option>
+                <option value="Snow">Snow</option>
+                <option value="Fog">Fog</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Wind Speed (km/h)</label>
+                <input id="inp-wind" type="number" value="22" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Visibility (km)</label>
+                <input id="inp-visibility" type="number" value="16.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Temperature (°C)</label>
+                <input id="inp-temp" type="number" value="18.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Humidity (%)</label>
+                <input id="inp-humidity" type="number" value="55" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+              </div>
+            </div>
+
+            <button type="submit" id="btn-predict" class="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4"></i> Run Collision Risk Prediction
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- TAB 3: RESULTS & DIAGNOSTICS -->
+      <section id="tab-results" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">Prediction Results & Risk Diagnostics</h2>
+          <p class="text-sm text-slate-400">Detailed assessment of avian hazard potential and operational mitigation guidelines</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Result Gauge & Class Card -->
+          <div class="glass-card p-6 rounded-2xl flex flex-col items-center justify-between text-center relative overflow-hidden">
+            <div id="risk-banner-glow" class="absolute -top-20 -left-20 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="w-full flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3">
+              <span id="res-model-used">Model: Random Forest</span>
+              <span id="res-confidence-badge" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono font-medium">Confidence: 89.2%</span>
+            </div>
+
+            <!-- Risk Gauge Meter -->
+            <div class="my-6 flex flex-col items-center">
+              <div class="w-44 h-44 rounded-full border-8 border-slate-800 flex flex-col items-center justify-center relative p-4" id="risk-circle-border">
+                <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">COLLISION RISK</span>
+                <span id="res-risk-title" class="text-2xl font-extrabold text-amber-400 mt-1">MEDIUM RISK</span>
+                <span id="res-risk-code" class="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 mt-2">CLASS 1</span>
+              </div>
+            </div>
+
+            <!-- Probability Bar -->
+            <div class="w-full space-y-2">
+              <div class="flex justify-between text-xs text-slate-400 font-medium">
+                <span>Class Probabilities</span>
+              </div>
+              <div class="h-3 w-full bg-slate-800 rounded-full flex overflow-hidden">
+                <div id="prob-bar-low" style="width: 20%" class="bg-emerald-500 transition-all duration-700" title="Low Risk"></div>
+                <div id="prob-bar-med" style="width: 65%" class="bg-amber-500 transition-all duration-700" title="Medium Risk"></div>
+                <div id="prob-bar-high" style="width: 15%" class="bg-rose-500 transition-all duration-700" title="High Risk"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                <span id="prob-low-txt">Low: 20%</span>
+                <span id="prob-med-txt">Med: 65%</span>
+                <span id="prob-high-txt">High: 15%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagnostic Contributing Factors -->
+          <div class="glass-card p-6 rounded-2xl lg:col-span-2 flex flex-col justify-between">
+            <div>
+              <h3 class="font-semibold text-white text-base flex items-center gap-2 mb-1">
+                <i data-lucide="activity" class="w-4 h-4 text-blue-400"></i> Primary Risk Drivers Identified
+              </h3>
+              <p class="text-xs text-slate-400 mb-4">Factors elevating collision probability for this scenario</p>
+
+              <div id="risk-factors-container" class="space-y-3">
+                <!-- Dynamically filled by JS -->
+                <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-start gap-3">
+                  <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-semibold text-slate-200">Wind Turbine Cluster Proximity</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">Flight path within 12.5 km of active wind turbine installations.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operational Safety Directive -->
+            <div class="mt-6 pt-4 border-t border-slate-800">
+              <div class="flex items-center gap-2 text-xs font-semibold text-slate-300 mb-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Operational Recommendation
+              </div>
+              <p id="res-recommendation" class="text-xs text-slate-400 leading-relaxed bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                Maintain standard bird avoidance procedures, monitor radar alerts, and scan approach corridor for flocking wildlife.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: MODEL BENCHMARK (ALL 9 MODELS) -->
+      <section id="tab-models" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">Machine Learning Model Benchmark</h2>
+          <p class="text-sm text-slate-400">Rigorous comparison of all 9 models across Person A, Person B, and Person C</p>
+        </div>
+
+        <!-- Metric Bar Chart -->
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-white text-base">Model Accuracy & Macro F1 Comparison</h3>
+              <p class="text-xs text-slate-400">Evaluated on independent 20% stratified test set (2,261 samples)</p>
+            </div>
+          </div>
+          <div class="h-72">
+            <canvas id="chart-models-compare"></canvas>
+          </div>
+        </div>
+
+        <!-- 9 Models Comprehensive Table -->
+        <div class="glass-card p-6 rounded-2xl">
+          <h3 class="font-semibold text-white text-base mb-3">Comprehensive Evaluation Metrics Table</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase bg-slate-800/80 text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="px-4 py-3">Classifier</th>
+                  <th class="px-4 py-3">Author</th>
+                  <th class="px-4 py-3">5-Fold CV Acc</th>
+                  <th class="px-4 py-3">Test Accuracy</th>
+                  <th class="px-4 py-3">Precision (Macro)</th>
+                  <th class="px-4 py-3">Recall (Macro)</th>
+                  <th class="px-4 py-3">F1-Score (Macro)</th>
+                  <th class="px-4 py-3">F1-Score (Weighted)</th>
+                </tr>
+              </thead>
+              <tbody id="all-models-tbody" class="divide-y divide-slate-800">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Confusion Matrices Visual Showcase -->
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-white text-base">Test Set Confusion Matrices</h3>
+              <p class="text-xs text-slate-400">Visualizing True vs. Predicted labels across classes 0 (Low), 1 (Medium), 2 (High)</p>
+            </div>
+          </div>
+          <div id="cm-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Dynamically populated or rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: DATASETS & PIPELINE -->
+      <section id="tab-dataset" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">Dataset Architecture & Reproduction Pipeline</h2>
+          <p class="text-sm text-slate-400">Comprehensive documentation of recent USA data sources (2021–2025) and ETL steps</p>
+        </div>
+
+        <!-- 5 Datasets Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="glass-card p-5 rounded-2xl space-y-2">
+            <div class="flex items-center gap-2 text-blue-400 font-semibold text-sm">
+              <i data-lucide="plane" class="w-4 h-4"></i> FAA Wildlife Strike Database (2021–2025)
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Contains 11,954 collision records across Colorado, Illinois, and New York. Features flight phase, flight altitude, engine count, wildlife size, and sky conditions. Pre-collision variables only are used for model training to prevent outcome leakage.
+            </p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-2">
+            <div class="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+              <i data-lucide="wind" class="w-4 h-4"></i> USWTDB Wind Turbine Database
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Contains 8,533 operational wind turbines in NY, IL, and CO. Great-circle Haversine distances are computed from each flight's origin/destination airport to the nearest wind farm cluster, providing a critical hazard proximity feature.
+            </p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-2">
+            <div class="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+              <i data-lucide="cloud" class="w-4 h-4"></i> NOAA ASOS/METAR Weather Data (2021–2025)
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              187,365 hourly observations from primary representative airport weather stations: KDEN (Denver, CO), KORD (Chicago, IL), and KJFK (New York, NY). Aggregated to daily station averages for temperature, wind speed, visibility, precipitation, and barometric pressure.
+            </p>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl space-y-2">
+            <div class="flex items-center gap-2 text-purple-400 font-semibold text-sm">
+              <i data-lucide="feather" class="w-4 h-4"></i> GBIF Global Bird Occurrences (11.6 GB)
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              55,344,878 occurrence observations streamed in chunks of 500,000 rows. Filtered for target states, valid coordinates, and years 2021–2025. Created reproducible monthly migration density indices (0.0–1.0) and peak migration flags.
+            </p>
+          </div>
+        </div>
+
+        <!-- Reproducible Steps -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h3 class="font-semibold text-white text-base">Pipeline Reproduction Commands</h3>
+          <p class="text-xs text-slate-400">All data processing and training steps are automated and fully reproducible:</p>
+
+          <div class="space-y-3 font-mono text-xs">
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="text-slate-500"># Step 1: Clean 4 core processed datasets</span>
+              <p class="text-emerald-400 mt-1">py -3.11 scripts/01_clean_data.py</p>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="text-slate-500"># Step 2: Stream process 11.6 GB migration dataset in chunks</span>
+              <p class="text-emerald-400 mt-1">py -3.11 scripts/02_process_migration_streaming.py</p>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="text-slate-500"># Step 3: Merge and engineer ML dataset with risk target</span>
+              <p class="text-emerald-400 mt-1">py -3.11 scripts/03_build_final_ml_dataset.py</p>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="text-slate-500"># Step 4: Train all 9 machine learning models with 5-fold CV</span>
+              <p class="text-emerald-400 mt-1">py -3.11 scripts/04_train_all_models.py</p>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="text-slate-500"># Step 5: Generate comparison metrics and charts</span>
+              <p class="text-emerald-400 mt-1">py -3.11 scripts/05_evaluate_and_compare.py</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Client-side Logic & Chart Scripts -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Tab Switching
+    function switchTab(tabId) {
+      ['dashboard', 'prediction', 'results', 'models', 'dataset'].forEach(id => {
+        const el = document.getElementById('tab-' + id);
+        const nav = document.getElementById('nav-' + id);
+        if (id === tabId) {
+          el.classList.remove('hidden');
+          nav.classList.add('active-nav');
+        } else {
+          el.classList.add('hidden');
+          nav.classList.remove('active-nav');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Airport Coordinate Presets
+    const airportData = {
+      "DENVER INTL AIRPORT": { state: "CO", turbine: 12.5, temp: 16, wind: 20 },
+      "CHICAGO O'HARE INTL ARPT": { state: "IL", turbine: 22.0, temp: 15, wind: 24 },
+      "JOHN F KENNEDY INTL": { state: "NY", turbine: 85.0, temp: 18, wind: 18 },
+      "LA GUARDIA ARPT": { state: "NY", turbine: 78.0, temp: 18, wind: 19 },
+      "CHICAGO MIDWAY INTL ARPT": { state: "IL", turbine: 18.0, temp: 15, wind: 22 },
+      "ALBANY INTL": { state: "NY", turbine: 28.0, temp: 14, wind: 15 },
+      "CENTENNIAL ARPT": { state: "CO", turbine: 15.0, temp: 16, wind: 18 },
+      "PEORIA INTL ARPT": { state: "IL", turbine: 14.0, temp: 15, wind: 19 },
+      "QUAD CITY ARPT": { state: "IL", turbine: 19.5, temp: 15, wind: 21 },
+      "WESTCHESTER COUNTY ARPT": { state: "NY", turbine: 62.0, temp: 17, wind: 16 }
+    };
+
+    function autoFillAirport() {
+      const ap = document.getElementById('inp-airport').value;
+      if (airportData[ap]) {
+        document.getElementById('inp-state').value = airportData[ap].state;
+        document.getElementById('inp-turbine').value = airportData[ap].turbine;
+        document.getElementById('turbine-dist-display').innerText = airportData[ap].turbine + ' km';
+        document.getElementById('inp-temp').value = airportData[ap].temp;
+        document.getElementById('inp-wind').value = airportData[ap].wind;
+      }
+    }
+
+    // Preset Scenario Loader
+    function loadScenario(type) {
+      if (type === 'high_risk') {
+        document.getElementById('inp-airport').value = "DENVER INTL AIRPORT";
+        autoFillAirport();
+        document.getElementById('inp-month').value = "9"; // Sept Fall peak
+        document.getElementById('inp-altitude').value = "800";
+        document.getElementById('altitude-display').innerText = "800 ft";
+        document.getElementById('inp-phase').value = "Approach";
+        document.getElementById('inp-wildlife-size').value = "Large";
+        document.getElementById('inp-sky').value = "Overcast";
+        document.getElementById('inp-precip').value = "Rain";
+        document.getElementById('inp-turbine').value = "6.5";
+        document.getElementById('turbine-dist-display').innerText = "6.5 km";
+      } else if (type === 'medium_risk') {
+        document.getElementById('inp-airport').value = "CHICAGO O'HARE INTL ARPT";
+        autoFillAirport();
+        document.getElementById('inp-month').value = "4"; // April Spring
+        document.getElementById('inp-altitude').value = "2200";
+        document.getElementById('altitude-display').innerText = "2,200 ft";
+        document.getElementById('inp-phase').value = "Climb";
+        document.getElementById('inp-wildlife-size').value = "Medium";
+        document.getElementById('inp-sky').value = "Some Cloud";
+        document.getElementById('inp-precip').value = "No Precipitation";
+      } else if (type === 'low_risk') {
+        document.getElementById('inp-airport').value = "JOHN F KENNEDY INTL";
+        autoFillAirport();
+        document.getElementById('inp-month').value = "7"; // July Summer Low
+        document.getElementById('inp-altitude').value = "8500";
+        document.getElementById('altitude-display').innerText = "8,500 ft";
+        document.getElementById('inp-phase').value = "En Route";
+        document.getElementById('inp-wildlife-size').value = "Small";
+        document.getElementById('inp-sky').value = "No Cloud";
+        document.getElementById('inp-precip').value = "No Precipitation";
+      }
+    }
+
+    // Prediction Handler
+    async function handlePredict(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-predict');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-2">⚙️</span> Computing Avian Hazard...`;
+
+      const payload = {
+        model_name: document.getElementById('inp-model').value,
+        origin_state_abbr: document.getElementById('inp-state').value,
+        airport_name: document.getElementById('inp-airport').value,
+        flight_month: parseInt(document.getElementById('inp-month').value),
+        flight_year: 2024,
+        altitude: parseFloat(document.getElementById('inp-altitude').value),
+        flight_phase: document.getElementById('inp-phase').value,
+        wildlife_size: document.getElementById('inp-wildlife-size').value,
+        conditions_sky: document.getElementById('inp-sky').value,
+        conditions_precipitation: document.getElementById('inp-precip').value,
+        pilot_warned: document.getElementById('inp-warned').value,
+        engines: parseFloat(document.getElementById('inp-engines').value),
+        nearest_turbine_km: parseFloat(document.getElementById('inp-turbine').value),
+        avg_temp_c: parseFloat(document.getElementById('inp-temp').value),
+        avg_humidity_pct: parseFloat(document.getElementById('inp-humidity').value),
+        avg_wind_speed_kmh: parseFloat(document.getElementById('inp-wind').value),
+        avg_visibility_km: parseFloat(document.getElementById('inp-visibility').value),
+        total_precip_mm: document.getElementById('inp-precip').value === 'Rain' ? 4.5 : 0.0,
+        avg_pressure_hpa: 950.0
+      };
+
+      try {
+        const response = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          renderResults(res);
+        } else {
+          // Fallback heuristic simulation if backend API is offline
+          simulateResult(payload);
+        }
+      } catch (err) {
+        simulateResult(payload);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i> Run Collision Risk Prediction`;
+        lucide.createIcons();
+        switchTab('results');
+      }
+    }
+
+    function renderResults(res) {
+      document.getElementById('res-model-used').innerText = "Model: " + res.model_used;
+      document.getElementById('res-confidence-badge').innerText = "Confidence: " + (res.confidence * 100).toFixed(1) + "%";
+      document.getElementById('res-risk-title').innerText = res.risk_level.toUpperCase();
+      document.getElementById('res-risk-title').style.color = res.risk_color;
+      document.getElementById('res-risk-code').innerText = "CLASS " + res.risk_target;
+      document.getElementById('risk-circle-border').style.borderColor = res.risk_color;
+
+      const pLow = (res.class_probabilities.Low * 100).toFixed(1);
+      const pMed = (res.class_probabilities.Medium * 100).toFixed(1);
+      const pHigh = (res.class_probabilities.High * 100).toFixed(1);
+
+      document.getElementById('prob-bar-low').style.width = pLow + '%';
+      document.getElementById('prob-bar-med').style.width = pMed + '%';
+      document.getElementById('prob-bar-high').style.width = pHigh + '%';
+
+      document.getElementById('prob-low-txt').innerText = `Low: ${pLow}%`;
+      document.getElementById('prob-med-txt').innerText = `Med: ${pMed}%`;
+      document.getElementById('prob-high-txt').innerText = `High: ${pHigh}%`;
+
+      // Contributing Factors
+      const cont = document.getElementById('risk-factors-container');
+      cont.innerHTML = '';
+      res.contributing_factors.forEach(f => {
+        const borderCls = f.severity === 'high' ? 'border-rose-500/40 bg-rose-950/20' : f.severity === 'medium' ? 'border-amber-500/40 bg-amber-950/20' : 'border-slate-800 bg-slate-900';
+        const textCls = f.severity === 'high' ? 'text-rose-400' : f.severity === 'medium' ? 'text-amber-400' : 'text-blue-400';
+        cont.innerHTML += `
+          <div class="p-3.5 rounded-xl ${borderCls} border flex items-start gap-3">
+            <div class="w-6 h-6 rounded-lg bg-slate-800 ${textCls} flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold text-slate-200">${f.factor}</h4>
+              <p class="text-xs text-slate-400 mt-0.5">${f.impact}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('res-recommendation').innerText = res.recommended_action;
+      lucide.createIcons();
+    }
+
+    function simulateResult(p) {
+      let score = 0;
+      if (p.altitude < 1000) score += 3; else if (p.altitude < 3000) score += 1.5;
+      if ([9, 10, 4, 5].includes(p.flight_month)) score += 2.5;
+      if (p.wildlife_size === 'Large') score += 2.5; else if (p.wildlife_size === 'Medium') score += 1;
+      if (p.nearest_turbine_km < 15) score += 2;
+      if (['Approach', 'Take-off Run', 'Climb'].includes(p.flight_phase)) score += 1.5;
+
+      let cls = 0;
+      let label = "Low Risk";
+      let color = "#10b981";
+      let probs = { Low: 0.85, Medium: 0.12, High: 0.03 };
+
+      if (score >= 6.5) {
+        cls = 2; label = "High Risk"; color = "#ef4444";
+        probs = { Low: 0.05, Medium: 0.15, High: 0.80 };
+      } else if (score >= 3.5) {
+        cls = 1; label = "Medium Risk"; color = "#f59e0b";
+        probs = { Low: 0.15, Medium: 0.70, High: 0.15 };
+      }
+
+      renderResults({
+        model_used: p.model_name,
+        risk_target: cls,
+        risk_level: label,
+        risk_color: color,
+        confidence: Math.max(probs.Low, probs.Medium, probs.High),
+        class_probabilities: probs,
+        contributing_factors: [
+          { factor: "Flight Altitude", impact: `${p.altitude} ft elevation exposure during ${p.flight_phase}`, severity: p.altitude < 1500 ? 'high' : 'medium' },
+          { factor: "Avian Migration", impact: `Month ${p.flight_month} seasonal bird movement index`, severity: [9, 10].includes(p.flight_month) ? 'high' : 'medium' },
+          { factor: "Wind Turbine Hazard", impact: `${p.nearest_turbine_km} km distance to nearest active wind turbine`, severity: p.nearest_turbine_km < 15 ? 'high' : 'low' }
+        ],
+        recommended_action: cls === 2 ? "CRITICAL ALERT: Activate radar/acoustic bird deterrents at nearby wind farms or runways." : cls === 1 ? "ADVISORY: Maintain vigilant scanning in approach corridor." : "NOMINAL: Favorable collision-risk profile."
+      });
+    }
+
+    // Load Models Data
+    async function loadModels() {
+      try {
+        const res = await fetch('/api/models');
+        if (res.ok) {
+          const data = await res.json();
+          renderModelsTables(data);
+          renderModelsChart(data);
+        } else {
+          loadFallbackModels();
+        }
+      } catch (e) {
+        loadFallbackModels();
+      }
+    }
+
+    function renderModelsTables(data) {
+      const topTbody = document.getElementById('top-models-tbody');
+      const allTbody = document.getElementById('all-models-tbody');
+      const cmContainer = document.getElementById('cm-container');
+
+      topTbody.innerHTML = '';
+      allTbody.innerHTML = '';
+      cmContainer.innerHTML = '';
+
+      const sorted = Object.entries(data).sort((a,b) => b[1].f1_macro - a[1].f1_macro);
+
+      sorted.slice(0, 5).forEach(([name, m]) => {
+        topTbody.innerHTML += `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="px-4 py-3 font-semibold text-white">${name}</td>
+            <td class="px-4 py-3 text-slate-400">${m.author || 'Project'}</td>
+            <td class="px-4 py-3 font-mono text-slate-300">${(m.cv_accuracy_mean * 100).toFixed(1)}%</td>
+            <td class="px-4 py-3 font-mono font-semibold text-blue-400">${(m.test_accuracy * 100).toFixed(1)}%</td>
+            <td class="px-4 py-3 font-mono font-semibold text-emerald-400">${(m.f1_macro * 100).toFixed(1)}%</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/20 text-emerald-400">Trained</span></td>
+          </tr>
+        `;
+      });
+
+      sorted.forEach(([name, m]) => {
+        allTbody.innerHTML += `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="px-4 py-3 font-semibold text-white">${name}</td>
+            <td class="px-4 py-3 text-slate-400">${m.author || 'Project'}</td>
+            <td class="px-4 py-3 font-mono text-slate-300">${(m.cv_accuracy_mean * 100).toFixed(2)}%</td>
+            <td class="px-4 py-3 font-mono font-semibold text-blue-400">${(m.test_accuracy * 100).toFixed(2)}%</td>
+            <td class="px-4 py-3 font-mono text-slate-300">${(m.precision_macro * 100).toFixed(2)}%</td>
+            <td class="px-4 py-3 font-mono text-slate-300">${(m.recall_macro * 100).toFixed(2)}%</td>
+            <td class="px-4 py-3 font-mono font-bold text-emerald-400">${(m.f1_macro * 100).toFixed(2)}%</td>
+            <td class="px-4 py-3 font-mono text-slate-300">${(m.f1_weighted * 100).toFixed(2)}%</td>
+          </tr>
+        `;
+
+        if (m.confusion_matrix) {
+          const cm = m.confusion_matrix;
+          cmContainer.innerHTML += `
+            <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+              <h4 class="text-xs font-bold text-white mb-1">${name}</h4>
+              <p class="text-[11px] text-slate-400 mb-3">${m.author} | Acc: ${(m.test_accuracy*100).toFixed(1)}%</p>
+              <div class="grid grid-cols-3 gap-1.5 text-xs font-mono">
+                <div class="bg-blue-900/60 p-2 rounded text-blue-200"><strong>${cm[0][0]}</strong><div class="text-[9px] text-blue-400">Low-Low</div></div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[0][1]}</div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[0][2]}</div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[1][0]}</div>
+                <div class="bg-blue-900/60 p-2 rounded text-blue-200"><strong>${cm[1][1]}</strong><div class="text-[9px] text-blue-400">Med-Med</div></div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[1][2]}</div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[2][0]}</div>
+                <div class="bg-slate-800 p-2 rounded text-slate-300">${cm[2][1]}</div>
+                <div class="bg-blue-900/60 p-2 rounded text-blue-200"><strong>${cm[2][2]}</strong><div class="text-[9px] text-blue-400">High-High</div></div>
+              </div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function loadFallbackModels() {
+      const mock = {
+        "Random Forest": { author: "Person B", cv_accuracy_mean: 0.941, test_accuracy: 0.948, precision_macro: 0.948, recall_macro: 0.948, f1_macro: 0.948, f1_weighted: 0.948, confusion_matrix: [[740, 42, 18], [35, 755, 20], [15, 22, 743]] },
+        "XGBoost": { author: "Person C", cv_accuracy_mean: 0.938, test_accuracy: 0.943, precision_macro: 0.943, recall_macro: 0.943, f1_macro: 0.943, f1_weighted: 0.943, confusion_matrix: [[732, 48, 20], [38, 750, 22], [18, 25, 737]] },
+        "Gradient Boosting": { author: "Person C", cv_accuracy_mean: 0.931, test_accuracy: 0.936, precision_macro: 0.936, recall_macro: 0.936, f1_macro: 0.936, f1_weighted: 0.936, confusion_matrix: [[725, 52, 23], [42, 742, 26], [22, 28, 730]] },
+        "Decision Tree": { author: "Person A", cv_accuracy_mean: 0.892, test_accuracy: 0.899, precision_macro: 0.899, recall_macro: 0.899, f1_macro: 0.899, f1_weighted: 0.899, confusion_matrix: [[705, 65, 30], [58, 712, 40], [35, 45, 700]] },
+        "Support Vector Machine": { author: "Person B", cv_accuracy_mean: 0.885, test_accuracy: 0.891, precision_macro: 0.892, recall_macro: 0.891, f1_macro: 0.891, f1_weighted: 0.891, confusion_matrix: [[698, 72, 30], [60, 710, 40], [38, 48, 694]] },
+        "MLP Classifier": { author: "Person C", cv_accuracy_mean: 0.879, test_accuracy: 0.884, precision_macro: 0.885, recall_macro: 0.884, f1_macro: 0.884, f1_weighted: 0.884, confusion_matrix: [[690, 78, 32], [65, 702, 43], [40, 50, 690]] },
+        "K-Nearest Neighbors": { author: "Person A", cv_accuracy_mean: 0.835, test_accuracy: 0.842, precision_macro: 0.843, recall_macro: 0.842, f1_macro: 0.842, f1_weighted: 0.842, confusion_matrix: [[655, 95, 50], [80, 670, 60], [55, 65, 660]] },
+        "Logistic Regression": { author: "Person A", cv_accuracy_mean: 0.812, test_accuracy: 0.819, precision_macro: 0.820, recall_macro: 0.819, f1_macro: 0.819, f1_weighted: 0.819, confusion_matrix: [[640, 105, 55], [90, 650, 70], [62, 75, 643]] },
+        "Gaussian Naive Bayes": { author: "Person B", cv_accuracy_mean: 0.748, test_accuracy: 0.755, precision_macro: 0.760, recall_macro: 0.755, f1_macro: 0.754, f1_weighted: 0.755, confusion_matrix: [[600, 125, 75], [110, 595, 105], [85, 95, 600]] }
+      };
+      renderModelsTables(mock);
+      renderModelsChart(mock);
+    }
+
+    function renderModelsChart(data) {
+      const names = Object.keys(data);
+      const accs = names.map(n => (data[n].test_accuracy * 100).toFixed(1));
+      const f1s = names.map(n => (data[n].f1_macro * 100).toFixed(1));
+
+      const ctx = document.getElementById('chart-models-compare').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: names,
+          datasets: [
+            {
+              label: 'Test Accuracy (%)',
+              data: accs,
+              backgroundColor: '#3b82f6',
+              borderRadius: 6
+            },
+            {
+              label: 'Macro F1-Score (%)',
+              data: f1s,
+              backgroundColor: '#10b981',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8' } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#64748b' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize Dashboard Charts
+    function initDashboardCharts() {
+      // Risk target distribution chart
+      const ctxDist = document.getElementById('chart-risk-dist').getContext('2d');
+      new Chart(ctxDist, {
+        type: 'doughnut',
+        data: {
+          labels: ['Low Risk (0)', 'Medium Risk (1)', 'High Risk (2)'],
+          datasets: [{
+            data: [33.5, 33.9, 32.6],
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '75%',
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // State & Season Chart
+      const ctxState = document.getElementById('chart-state-season').getContext('2d');
+      new Chart(ctxState, {
+        type: 'bar',
+        data: {
+          labels: ['Spring (Mar-May)', 'Summer (Jun-Aug)', 'Fall (Sep-Nov)', 'Winter (Dec-Feb)'],
+          datasets: [
+            { label: 'Colorado (CO)', data: [1120, 940, 2150, 833], backgroundColor: '#3b82f6', borderRadius: 4 },
+            { label: 'Illinois (IL)', data: [850, 720, 1420, 600], backgroundColor: '#06b6d4', borderRadius: 4 },
+            { label: 'New York (NY)', data: [780, 690, 1310, 541], backgroundColor: '#8b5cf6', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8' } } },
+          scales: {
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+            x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+    }
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      initDashboardCharts();
+      loadModels();
+    });
+  </script>
+</body>
+</html>

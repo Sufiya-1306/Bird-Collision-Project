@@ -1,0 +1,62 @@
+# ==============================================================================
+# Git Ignore - Bird Collision Risk Prediction Project
+# ==============================================================================
+
+# CRITICAL: Exclude 11.6 GB raw and intermediate large migration datasets
+migration_US_NY_IL_CO_2021_2025.csv
+migration_US_NY_IL_CO_2021_2025_clean.csv
+data/processed/migration_US_NY_IL_CO_2021_2025.csv
+data/processed/migration_US_NY_IL_CO_2021_2025_clean.csv
+*migration_US_NY_IL_CO_2021_2025*.csv
+
+# Raw data archive (60.8 GB GBIF zip) and any archives
+data/raw/
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Python environments and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter & IDEs
+.ipynb_checkpoints/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS artifacts
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Large datasets that exceed GitHub's 100MB limit
+*.parquet
+*.h5
+*.feather

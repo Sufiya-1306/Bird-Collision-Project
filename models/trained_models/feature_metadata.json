@@ -1,0 +1,39 @@
+{
+  "numeric_features": [
+    "flight_month",
+    "flight_year",
+    "engines",
+    "altitude",
+    "latitude",
+    "longitude",
+    "elevation_ft",
+    "nearest_turbine_km",
+    "avg_temp_c",
+    "avg_humidity_pct",
+    "avg_wind_speed_kmh",
+    "avg_visibility_km",
+    "total_precip_mm",
+    "avg_pressure_hpa",
+    "migration_density",
+    "is_peak_migration"
+  ],
+  "categorical_features": [
+    "origin_state_abbr",
+    "flight_phase",
+    "conditions_sky",
+    "conditions_precipitation",
+    "pilot_warned",
+    "wildlife_size",
+    "season"
+  ],
+  "target_names": {
+    "0": "Low",
+    "1": "Medium",
+    "2": "High"
+  },
+  "target_classes": [
+    0,
+    1,
+    2
+  ]
+}
