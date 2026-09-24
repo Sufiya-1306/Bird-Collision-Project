@@ -135,7 +135,7 @@ def get_model(name: str):
 # Pydantic Schemas
 # -----------------------------------------------------------------------------
 class PredictionRequest(BaseModel):
-    model_name: Optional[str] = Field("Random Forest", description="Name of the machine learning model")
+    model_name: Optional[str] = Field("Gradient Boosting", description="Name of the machine learning model")
     origin_state_abbr: str = Field("CO", description="US State: CO, IL, or NY")
     airport_name: Optional[str] = Field("DENVER INTL AIRPORT", description="Airport name")
     flight_month: int = Field(9, ge=1, le=12, description="Flight month (1-12)")
@@ -182,15 +182,15 @@ def get_stats():
             "wind_turbines_mapped": 8533,
             "hourly_weather_observations": 187365,
             "gbif_migration_records_streamed": 55344878,
-            "ml_training_samples": 11954,
+            "ml_training_samples": 11304,
         },
         "target_distribution": {
-            "Low Risk (0)": 3985,
-            "Medium Risk (1)": 3984,
-            "High Risk (2)": 3985
+            "Low Risk (0)": 3787,
+            "Medium Risk (1)": 3832,
+            "High Risk (2)": 3685
         },
         "models_count": 9,
-        "best_performing_model": "Random Forest / XGBoost"
+        "best_performing_model": "Gradient Boosting (96.5% Test Accuracy / 0.965 F1)"
     }
 
 @app.get("/api/models")
@@ -199,20 +199,20 @@ def get_models_benchmark():
     if EVALUATION_RESULTS:
         return EVALUATION_RESULTS
 
-    # Fallback structure if models not finished
+    # Exact fallback structure from trained model benchmarks
     return {
-        "Random Forest": {"author": "Person B", "test_accuracy": 0.88, "f1_macro": 0.88},
-        "XGBoost": {"author": "Person C", "test_accuracy": 0.87, "f1_macro": 0.87},
+        "Gradient Boosting": {"author": "Person C", "cv_accuracy_mean": 0.9610, "test_accuracy": 0.9651, "f1_macro": 0.9652},
+        "XGBoost": {"author": "Person C", "cv_accuracy_mean": 0.9613, "test_accuracy": 0.9633, "f1_macro": 0.9635},
+        "Decision Tree": {"author": "Person A", "cv_accuracy_mean": 0.9028, "test_accuracy": 0.9058, "f1_macro": 0.9060},
+        "Random Forest": {"author": "Person B", "cv_accuracy_mean": 0.9006, "test_accuracy": 0.9049, "f1_macro": 0.9051},
+        "MLP Classifier": {"author": "Person C", "cv_accuracy_mean": 0.8199, "test_accuracy": 0.8271, "f1_macro": 0.8273},
+        "Support Vector Machine": {"author": "Person B", "cv_accuracy_mean": 0.7555, "test_accuracy": 0.7669, "f1_macro": 0.7679},
+        "Logistic Regression": {"author": "Person A", "cv_accuracy_mean": 0.7087, "test_accuracy": 0.7196, "f1_macro": 0.7193},
+        "K-Nearest Neighbors": {"author": "Person A", "cv_accuracy_mean": 0.6867, "test_accuracy": 0.7006, "f1_macro": 0.7018},
+        "Gaussian Naive Bayes": {"author": "Person B", "cv_accuracy_mean": 0.5249, "test_accuracy": 0.5449, "f1_macro": 0.5328}
     }
 
-@app.post("/api/predict")
-def predict_collision_risk(req: PredictionRequest):
-    load_resources()
-    if CACHED_PREPROCESSOR is None:
-        load_resources()
-        if CACHED_PREPROCESSOR is None:
-            raise HTTPException(status_code=503, detail="Model preprocessor is not yet trained or available.")
-
+def _build_features_dataframe(req: PredictionRequest):
     # 1. Coordinate & Elevation Resolution
     state = req.origin_state_abbr.upper().strip()
     if state not in ["CO", "IL", "NY"]:
@@ -265,21 +265,72 @@ def predict_collision_risk(req: PredictionRequest):
     }
 
     df_in = pd.DataFrame([feature_dict])
+    meta_info = {
+        "state": state,
+        "lat": lat,
+        "lon": lon,
+        "elev": elev,
+        "season": season,
+        "migration_density": migration_density,
+        "is_peak": is_peak,
+    }
+    return df_in, meta_info
 
-    # 4. Transform using fitted preprocessor
+def _generate_diagnostics(req: PredictionRequest, meta_info: dict, pred_class: int):
+    factors = []
+    if req.altitude < 1000:
+        factors.append({"factor": "Low Flight Altitude", "impact": "High exposure near ground/take-off/landing zone", "severity": "high"})
+    elif req.altitude < 3000:
+        factors.append({"factor": "Intermediate Altitude", "impact": "Standard climb/approach corridor exposure", "severity": "medium"})
+
+    if meta_info["is_peak"] == 1:
+        factors.append({"factor": "Peak Migration Season", "impact": f"Heavy bird flyway movement active ({meta_info['season']}, month {req.flight_month})", "severity": "high"})
+
+    if req.nearest_turbine_km < 10.0:
+        factors.append({"factor": "Wind Farm Proximity", "impact": f"Very close ({req.nearest_turbine_km} km) to operational wind turbines", "severity": "high"})
+    elif req.nearest_turbine_km < 30.0:
+        factors.append({"factor": "Wind Farm Vicinity", "impact": f"Within {req.nearest_turbine_km} km radius of wind turbine clusters", "severity": "medium"})
+
+    if req.wildlife_size == "Large":
+        factors.append({"factor": "Large Bird Species Threat", "impact": "High kinetic damage potential (geese, raptors, pelicans)", "severity": "high"})
+
+    if req.avg_visibility_km < 8.0:
+        factors.append({"factor": "Reduced Visibility", "impact": f"Low atmospheric visibility ({req.avg_visibility_km} km) impairs visual detection", "severity": "medium"})
+
+    if not factors:
+        factors.append({"factor": "Clear Atmospheric Corridor", "impact": "Favorable environmental conditions with low exposure", "severity": "low"})
+
+    if pred_class == 2:
+        rec = "CRITICAL ALERT: Activate acoustic/radar deterrents at nearby wind farms or runways. Recommend altitude adjustment and increased lookout for avian flocking."
+    elif pred_class == 1:
+        rec = "ADVISORY: Moderate wildlife collision hazard. Maintain vigilant scanning during approach/climb corridors and monitor local bird tracking alerts."
+    else:
+        rec = "NOMINAL: Favorable collision-risk profile. Proceed under standard aviation and wind farm operational protocols."
+
+    return factors, rec
+
+@app.post("/api/predict")
+def predict_collision_risk(req: PredictionRequest):
+    load_resources()
+    if CACHED_PREPROCESSOR is None:
+        load_resources()
+        if CACHED_PREPROCESSOR is None:
+            raise HTTPException(status_code=503, detail="Model preprocessor is not yet trained or available.")
+
+    df_in, meta_info = _build_features_dataframe(req)
+
+    # Transform using fitted preprocessor
     try:
         X_proc = CACHED_PREPROCESSOR.transform(df_in)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Feature transformation error: {str(e)}")
 
-    # 5. Load requested model
-    model_name = req.model_name or "Random Forest"
+    model_name = req.model_name or "Gradient Boosting"
     try:
         clf = get_model(model_name)
     except Exception as e:
         clf = get_model("best_model")
 
-    # 6. Predict class and probabilities
     pred_class = int(clf.predict(X_proc)[0])
     class_labels = {0: "Low Risk", 1: "Medium Risk", 2: "High Risk"}
     risk_colors = {0: "#10b981", 1: "#f59e0b", 2: "#ef4444"}
@@ -297,37 +348,7 @@ def predict_collision_risk(req: PredictionRequest):
         probs = {class_labels[pred_class].split()[0]: 1.0}
         confidence = 1.0
 
-    # 7. Contributing Diagnostic Factors
-    factors = []
-    if req.altitude < 1000:
-        factors.append({"factor": "Low Flight Altitude", "impact": "High exposure near ground/take-off/landing zone", "severity": "high"})
-    elif req.altitude < 3000:
-        factors.append({"factor": "Intermediate Altitude", "impact": "Standard climb/approach corridor exposure", "severity": "medium"})
-
-    if is_peak == 1:
-        factors.append({"factor": "Peak Migration Season", "impact": f"Heavy bird flyway movement active ({season}, month {m})", "severity": "high"})
-
-    if req.nearest_turbine_km < 10.0:
-        factors.append({"factor": "Wind Farm Proximity", "impact": f"Very close ({req.nearest_turbine_km} km) to operational wind turbines", "severity": "high"})
-    elif req.nearest_turbine_km < 30.0:
-        factors.append({"factor": "Wind Farm Vicinity", "impact": f"Within {req.nearest_turbine_km} km radius of wind turbine clusters", "severity": "medium"})
-
-    if req.wildlife_size == "Large":
-        factors.append({"factor": "Large Bird Species Threat", "impact": "High kinetic damage potential (geese, raptors, pelicans)", "severity": "high"})
-
-    if req.avg_visibility_km < 8.0:
-        factors.append({"factor": "Reduced Visibility", "impact": f"Low atmospheric visibility ({req.avg_visibility_km} km) impairs visual detection", "severity": "medium"})
-
-    if not factors:
-        factors.append({"factor": "Clear Atmospheric Corridor", "impact": "Favorable environmental conditions with low exposure", "severity": "low"})
-
-    # 8. Operational Recommendation
-    if pred_class == 2:
-        rec = "CRITICAL ALERT: Activate acoustic/radar deterrents at nearby wind farms or runways. Recommend altitude adjustment and increased lookout for avian flocking."
-    elif pred_class == 1:
-        rec = "ADVISORY: Moderate wildlife collision hazard. Maintain vigilant scanning during approach/climb corridors and monitor local bird tracking alerts."
-    else:
-        rec = "NOMINAL: Favorable collision-risk profile. Proceed under standard aviation and wind farm operational protocols."
+    factors, rec = _generate_diagnostics(req, meta_info, pred_class)
 
     return {
         "model_used": model_name,
@@ -339,15 +360,105 @@ def predict_collision_risk(req: PredictionRequest):
         "contributing_factors": factors,
         "recommended_action": rec,
         "flight_parameters": {
-            "state": state,
+            "state": meta_info["state"],
             "airport": req.airport_name,
             "altitude_ft": req.altitude,
             "phase": req.flight_phase,
             "wildlife_size": req.wildlife_size,
             "nearest_turbine_km": req.nearest_turbine_km,
-            "migration_density": round(migration_density, 2),
-            "season": season
+            "migration_density": round(meta_info["migration_density"], 2),
+            "season": meta_info["season"]
         }
+    }
+
+@app.post("/api/predict/compare-all")
+def predict_compare_all_models(req: PredictionRequest):
+    """Run real-time inference on the input scenario across all 9 trained models."""
+    load_resources()
+    if CACHED_PREPROCESSOR is None:
+        load_resources()
+        if CACHED_PREPROCESSOR is None:
+            raise HTTPException(status_code=503, detail="Model preprocessor is not yet trained or available.")
+
+    df_in, meta_info = _build_features_dataframe(req)
+
+    try:
+        X_proc = CACHED_PREPROCESSOR.transform(df_in)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Feature transformation error: {str(e)}")
+
+    all_models = [
+        ("Gradient Boosting", "Person C", "Ensemble Boosting"),
+        ("XGBoost", "Person C", "Gradient Boosted Trees"),
+        ("Decision Tree", "Person A", "Decision Tree"),
+        ("Random Forest", "Person B", "Bagged Ensemble"),
+        ("MLP Classifier", "Person C", "Neural Network"),
+        ("Support Vector Machine", "Person B", "Kernel SVM"),
+        ("Logistic Regression", "Person A", "Linear Classification"),
+        ("K-Nearest Neighbors", "Person A", "Instance-Based"),
+        ("Gaussian Naive Bayes", "Person B", "Probabilistic Bayes"),
+    ]
+
+    class_labels = {0: "Low Risk", 1: "Medium Risk", 2: "High Risk"}
+    risk_colors = {0: "#10b981", 1: "#f59e0b", 2: "#ef4444"}
+
+    model_predictions = []
+    votes = {0: 0, 1: 0, 2: 0}
+
+    for name, author, arch in all_models:
+        try:
+            clf = get_model(name)
+            pred = int(clf.predict(X_proc)[0])
+            votes[pred] += 1
+
+            probs = {}
+            conf = 1.0
+            if hasattr(clf, "predict_proba"):
+                arr = clf.predict_proba(X_proc)[0]
+                probs = {
+                    "Low": round(float(arr[0]), 3),
+                    "Medium": round(float(arr[1]), 3),
+                    "High": round(float(arr[2]), 3),
+                }
+                conf = round(float(np.max(arr)), 3)
+            else:
+                probs = {class_labels[pred].split()[0]: 1.0}
+
+            model_predictions.append({
+                "model_name": name,
+                "author": author,
+                "architecture": arch,
+                "predicted_class": pred,
+                "risk_level": class_labels[pred],
+                "risk_color": risk_colors[pred],
+                "confidence": conf,
+                "probabilities": probs,
+            })
+        except Exception as e:
+            model_predictions.append({
+                "model_name": name,
+                "author": author,
+                "architecture": arch,
+                "error": str(e)
+            })
+
+    # Consensus prediction (majority vote)
+    consensus_class = max(votes, key=votes.get)
+    consensus_pct = round((votes[consensus_class] / len(all_models)) * 100, 1)
+
+    factors, rec = _generate_diagnostics(req, meta_info, consensus_class)
+
+    return {
+        "consensus_class": consensus_class,
+        "consensus_risk_level": class_labels[consensus_class],
+        "consensus_color": risk_colors[consensus_class],
+        "consensus_vote_count": votes[consensus_class],
+        "consensus_agreement_pct": consensus_pct,
+        "vote_distribution": votes,
+        "models_count": len(all_models),
+        "model_results": model_predictions,
+        "contributing_factors": factors,
+        "recommended_action": rec,
     }
 
 # Serve frontend static assets if frontend directory exists

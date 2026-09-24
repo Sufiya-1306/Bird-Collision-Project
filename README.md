@@ -146,31 +146,39 @@ The project implements and benchmarks the complete set of 9 intended classifiers
 
 ### Benchmark Results Table
 
+The 9 models benchmarked across the three author tracks on the held-out stratified test set ($N=2,261$):
+
 | Rank | Model Name | Author Track | 5-Fold CV Acc | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score | Weighted F1-Score |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 🥇 | **Random Forest** | Person B | **95.2%** | **95.8%** | **0.958** | **0.958** | **0.958** | **0.958** |
-| 🥈 | **XGBoost** | Person C | 94.6% | 95.1% | 0.951 | 0.951 | 0.951 | 0.951 |
-| 🥉 | **Gradient Boosting** | Person C | 93.9% | 94.4% | 0.944 | 0.944 | 0.944 | 0.944 |
-| 4 | **Decision Tree** | Person A | 89.8% | 90.4% | 0.904 | 0.904 | 0.904 | 0.904 |
-| 5 | **Support Vector Machine (SVM)** | Person B | 88.7% | 89.3% | 0.894 | 0.893 | 0.893 | 0.893 |
-| 6 | **MLP Classifier (Neural Net)** | Person C | 88.1% | 88.7% | 0.887 | 0.887 | 0.887 | 0.887 |
-| 7 | **K-Nearest Neighbors (KNN)** | Person A | 83.9% | 84.6% | 0.846 | 0.846 | 0.846 | 0.846 |
-| 8 | **Logistic Regression** | Person A | 81.5% | 82.1% | 0.821 | 0.821 | 0.821 | 0.821 |
-| 9 | **Gaussian Naive Bayes** | Person B | 74.9% | 75.6% | 0.761 | 0.756 | 0.755 | 0.756 |
+| 🥇 | **Gradient Boosting** | Person C | **96.1%** | **96.5%** | **0.965** | **0.965** | **0.965** | **0.965** |
+| 🥈 | **XGBoost** | Person C | 96.1% | 96.3% | 0.964 | 0.963 | 0.964 | 0.963 |
+| 🥉 | **Decision Tree** | Person A | 90.3% | 90.6% | 0.906 | 0.906 | 0.906 | 0.906 |
+| 4 | **Random Forest** | Person B | 90.1% | 90.5% | 0.905 | 0.905 | 0.905 | 0.905 |
+| 5 | **MLP Classifier (Neural Net)** | Person C | 82.0% | 82.7% | 0.827 | 0.827 | 0.827 | 0.827 |
+| 6 | **Support Vector Machine (SVM)** | Person B | 75.6% | 76.7% | 0.768 | 0.768 | 0.768 | 0.767 |
+| 7 | **Logistic Regression** | Person A | 70.9% | 72.0% | 0.719 | 0.720 | 0.719 | 0.719 |
+| 8 | **K-Nearest Neighbors (KNN)** | Person A | 68.7% | 70.1% | 0.704 | 0.701 | 0.702 | 0.701 |
+| 9 | **Gaussian Naive Bayes** | Person B | 52.5% | 54.5% | 0.595 | 0.541 | 0.533 | 0.534 |
 
 ---
 
 ## 🔒 Git Safety Rule: 11.6 GB Migration File Exclusion
 
 > [!CRITICAL]
-> **Large File Safety**:
-> The 11.6 GB migration CSV (`data/processed/migration_US_NY_IL_CO_2021_2025.csv`) and the raw 60.8 GB archive are **strictly excluded from Git tracking** via `.gitignore`.
+> **Large File Safety & Local Reproduction Note**:
+> - The 11.6 GB migration CSV (`data/processed/migration_US_NY_IL_CO_2021_2025.csv`) and raw 60.8 GB archives are **strictly excluded from Git tracking** via `.gitignore`.
+> - **Only Step 2 (`scripts/02_process_migration_streaming.py`)** requires the 11.6 GB file if re-streaming from raw records.
+> - The processed outputs from the stream processing:
+>   - `data/processed/migration_monthly_density_2021_2025.csv` (180 rows, state/month migration index)
+>   - `data/processed/migration_sample_clean.csv` (276,490 rows, 25.7 MB)
+>   are already generated, checked into repository tracking, and directly utilized by Step 3 (`scripts/03_build_final_ml_dataset.py`), model training, and the FastAPI application.
+> - **Therefore, you DO NOT need the 11.6 GB file to build datasets, train/evaluate all 9 models, run test suites, or launch the web dashboard.**
 > 
 > Verification check:
 > ```bash
 > git check-ignore data/processed/migration_US_NY_IL_CO_2021_2025.csv
 > ```
-> Returns matching ignore rule. The large file remains safely on disk for local pipeline execution and is never staged, committed, or pushed to GitHub.
+> Returns `data/processed/migration_US_NY_IL_CO_2021_2025.csv` (exit code 0). The large file is never staged, committed, or pushed to GitHub.
 
 ---
 
@@ -178,12 +186,12 @@ The project implements and benchmarks the complete set of 9 intended classifiers
 
 ### 1. Install Dependencies
 ```bash
-py -3.11 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 2. Launch FastAPI Server & Dashboard
 ```bash
-py -3.11 -m uvicorn backend.app:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### 3. Open Web UI Dashboard
@@ -192,6 +200,13 @@ Open your web browser and navigate to:
 http://127.0.0.1:8000
 ```
 - Interactive Swagger API docs are available at `http://127.0.0.1:8000/docs`.
+
+### 4. Available REST API Endpoints
+- `GET /api/health`: Service health status, metadata, and list of available models.
+- `GET /api/stats`: Project data statistics, dataset records counts, and target class distributions.
+- `GET /api/models`: Full 9-model cross-validation and test set evaluation benchmark results.
+- `POST /api/predict`: Live collision risk prediction for a flight scenario using any specified model (or default best model `Gradient Boosting`).
+- `POST /api/predict/compare-all`: Simultaneous live inference across all 9 model architectures with consensus majority voting and agreement percentage.
 
 ---
 

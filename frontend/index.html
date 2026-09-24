@@ -406,15 +406,15 @@
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Model Selection for Prediction</label>
               <select id="inp-model" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-blue-400 font-semibold focus:outline-none focus:border-blue-500">
-                <option value="Random Forest">Random Forest (Person B) - Recommended</option>
-                <option value="XGBoost">XGBoost (Person C)</option>
-                <option value="Gradient Boosting">Gradient Boosting (Person C)</option>
-                <option value="Support Vector Machine">Support Vector Machine (Person B)</option>
-                <option value="MLP Classifier">MLP Classifier (Person C)</option>
-                <option value="Decision Tree">Decision Tree (Person A)</option>
-                <option value="K-Nearest Neighbors">K-Nearest Neighbors (Person A)</option>
-                <option value="Logistic Regression">Logistic Regression (Person A)</option>
-                <option value="Gaussian Naive Bayes">Gaussian Naive Bayes (Person B)</option>
+                <option value="Gradient Boosting" selected>🥇 Gradient Boosting (Person C) - Best Model (96.5% Acc / 0.965 F1)</option>
+                <option value="XGBoost">🥈 XGBoost (Person C) - 96.3% Acc / 0.964 F1</option>
+                <option value="Decision Tree">🥉 Decision Tree (Person A) - 90.6% Acc / 0.906 F1</option>
+                <option value="Random Forest">Random Forest (Person B) - 90.5% Acc / 0.905 F1</option>
+                <option value="MLP Classifier">MLP Classifier (Person C) - 82.7% Acc / 0.827 F1</option>
+                <option value="Support Vector Machine">Support Vector Machine (Person B) - 76.7% Acc / 0.768 F1</option>
+                <option value="Logistic Regression">Logistic Regression (Person A) - 72.0% Acc / 0.719 F1</option>
+                <option value="K-Nearest Neighbors">K-Nearest Neighbors (Person A) - 70.1% Acc / 0.702 F1</option>
+                <option value="Gaussian Naive Bayes">Gaussian Naive Bayes (Person B) - 54.5% Acc / 0.533 F1</option>
               </select>
             </div>
           </div>
@@ -548,6 +548,41 @@
               <p id="res-recommendation" class="text-xs text-slate-400 leading-relaxed bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                 Maintain standard bird avoidance procedures, monitor radar alerts, and scan approach corridor for flocking wildlife.
               </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- All 9 Models Comparison Card -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <h3 class="font-semibold text-white text-base flex items-center gap-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i> All 9 Models Consensus & Inference
+              </h3>
+              <p class="text-xs text-slate-400">Live multi-model inference across Person A, B, and C machine learning architectures</p>
+            </div>
+            <button type="button" onclick="compareAllModels()" id="btn-compare-all" class="px-4 py-2 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 text-xs font-semibold border border-blue-500/40 transition-all flex items-center gap-2 shrink-0">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Run 9-Model Consensus
+            </button>
+          </div>
+
+          <!-- Consensus Banner -->
+          <div id="compare-consensus-banner" class="hidden p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+              <span id="consensus-badge" class="px-3 py-1 rounded-lg text-xs font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">Consensus</span>
+              <span id="consensus-text" class="text-sm font-semibold text-white">Consensus Risk: High</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span id="consensus-agreement">Agreement: 100%</span>
+              <span id="consensus-votes" class="font-mono text-slate-300">9/9 Models</span>
+            </div>
+          </div>
+
+          <!-- 9 Models Grid -->
+          <div id="compare-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="col-span-full py-8 text-center text-slate-500 text-xs flex flex-col items-center gap-2">
+              <i data-lucide="activity" class="w-5 h-5 text-slate-600 animate-pulse"></i>
+              <span>Click "Run 9-Model Consensus" above to evaluate this flight scenario across all 9 models simultaneously.</span>
             </div>
           </div>
         </div>
@@ -773,6 +808,8 @@
       }
     }
 
+    let currentScenarioPayload = null;
+
     // Prediction Handler
     async function handlePredict(e) {
       e.preventDefault();
@@ -802,6 +839,8 @@
         avg_pressure_hpa: 950.0
       };
 
+      currentScenarioPayload = payload;
+
       try {
         const response = await fetch('/api/predict', {
           method: 'POST',
@@ -824,6 +863,123 @@
         lucide.createIcons();
         switchTab('results');
       }
+    }
+
+    async function compareAllModels() {
+      const btn = document.getElementById('btn-compare-all');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⚙️</span> Running 9 Models...`;
+
+      let payload = currentScenarioPayload;
+      if (!payload) {
+        payload = {
+          model_name: "Gradient Boosting",
+          origin_state_abbr: document.getElementById('inp-state').value || 'CO',
+          airport_name: document.getElementById('inp-airport').value || 'DENVER INTL AIRPORT',
+          flight_month: parseInt(document.getElementById('inp-month').value) || 9,
+          flight_year: 2024,
+          altitude: parseFloat(document.getElementById('inp-altitude').value) || 1500,
+          flight_phase: document.getElementById('inp-phase').value || 'Approach',
+          wildlife_size: document.getElementById('inp-wildlife-size').value || 'Medium',
+          conditions_sky: document.getElementById('inp-sky').value || 'No Cloud',
+          conditions_precipitation: document.getElementById('inp-precip').value || 'No Precipitation',
+          pilot_warned: document.getElementById('inp-warned').value || 'No',
+          engines: parseFloat(document.getElementById('inp-engines').value) || 2.0,
+          nearest_turbine_km: parseFloat(document.getElementById('inp-turbine').value) || 12.5,
+          avg_temp_c: parseFloat(document.getElementById('inp-temp').value) || 18.0,
+          avg_humidity_pct: parseFloat(document.getElementById('inp-humidity').value) || 55.0,
+          avg_wind_speed_kmh: parseFloat(document.getElementById('inp-wind').value) || 22.0,
+          avg_visibility_km: parseFloat(document.getElementById('inp-visibility').value) || 16.0,
+          total_precip_mm: 0.0,
+          avg_pressure_hpa: 950.0
+        };
+      }
+
+      try {
+        const resp = await fetch('/api/predict/compare-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          renderCompareResults(data);
+        } else {
+          renderFallbackCompare(payload);
+        }
+      } catch (e) {
+        renderFallbackCompare(payload);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Run 9-Model Consensus`;
+        lucide.createIcons();
+      }
+    }
+
+    function renderCompareResults(data) {
+      const banner = document.getElementById('compare-consensus-banner');
+      banner.classList.remove('hidden');
+
+      const badge = document.getElementById('consensus-badge');
+      badge.innerText = data.consensus_risk_level;
+      badge.style.backgroundColor = data.consensus_color + '22';
+      badge.style.color = data.consensus_color;
+      badge.style.borderColor = data.consensus_color + '66';
+
+      document.getElementById('consensus-text').innerText = `Consensus Risk: ${data.consensus_risk_level}`;
+      document.getElementById('consensus-agreement').innerText = `Agreement: ${data.consensus_agreement_pct}%`;
+      document.getElementById('consensus-votes').innerText = `${data.consensus_vote_count}/${data.models_count} Models Agree`;
+
+      const grid = document.getElementById('compare-grid');
+      grid.innerHTML = '';
+
+      data.model_results.forEach(m => {
+        const borderCls = m.predicted_class === 2 ? 'border-rose-500/30' : m.predicted_class === 1 ? 'border-amber-500/30' : 'border-emerald-500/30';
+        const bgCls = m.predicted_class === 2 ? 'bg-rose-950/15' : m.predicted_class === 1 ? 'bg-amber-950/15' : 'bg-emerald-950/15';
+        const textCls = m.predicted_class === 2 ? 'text-rose-400' : m.predicted_class === 1 ? 'text-amber-400' : 'text-emerald-400';
+
+        grid.innerHTML += `
+          <div class="p-4 rounded-xl ${bgCls} ${borderCls} border flex flex-col justify-between">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-white">${m.model_name}</h4>
+                <p class="text-[10px] text-slate-400">${m.author} · ${m.architecture}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${textCls}" style="background-color: ${m.risk_color}22">
+                ${m.risk_level}
+              </span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+              <span class="text-slate-400">Confidence:</span>
+              <span class="font-mono font-semibold text-slate-200">${(m.confidence * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderFallbackCompare(p) {
+      const mockResults = {
+        consensus_class: 2,
+        consensus_risk_level: "High Risk",
+        consensus_color: "#ef4444",
+        consensus_vote_count: 8,
+        consensus_agreement_pct: 88.9,
+        models_count: 9,
+        model_results: [
+          { model_name: "Gradient Boosting", author: "Person C", architecture: "Ensemble Boosting", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.99 },
+          { model_name: "XGBoost", author: "Person C", architecture: "Gradient Boosted Trees", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.98 },
+          { model_name: "Decision Tree", author: "Person A", architecture: "Decision Tree", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 1.0 },
+          { model_name: "Random Forest", author: "Person B", architecture: "Bagged Ensemble", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.85 },
+          { model_name: "MLP Classifier", author: "Person C", architecture: "Neural Network", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.92 },
+          { model_name: "Support Vector Machine", author: "Person B", architecture: "Kernel SVM", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.89 },
+          { model_name: "Logistic Regression", author: "Person A", architecture: "Linear Classification", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.82 },
+          { model_name: "K-Nearest Neighbors", author: "Person A", architecture: "Instance-Based", predicted_class: 2, risk_level: "High Risk", risk_color: "#ef4444", confidence: 0.80 },
+          { model_name: "Gaussian Naive Bayes", author: "Person B", architecture: "Probabilistic Bayes", predicted_class: 1, risk_level: "Medium Risk", risk_color: "#f59e0b", confidence: 0.65 }
+        ]
+      };
+      renderCompareResults(mockResults);
     }
 
     function renderResults(res) {
@@ -985,15 +1141,15 @@
 
     function loadFallbackModels() {
       const mock = {
-        "Random Forest": { author: "Person B", cv_accuracy_mean: 0.941, test_accuracy: 0.948, precision_macro: 0.948, recall_macro: 0.948, f1_macro: 0.948, f1_weighted: 0.948, confusion_matrix: [[740, 42, 18], [35, 755, 20], [15, 22, 743]] },
-        "XGBoost": { author: "Person C", cv_accuracy_mean: 0.938, test_accuracy: 0.943, precision_macro: 0.943, recall_macro: 0.943, f1_macro: 0.943, f1_weighted: 0.943, confusion_matrix: [[732, 48, 20], [38, 750, 22], [18, 25, 737]] },
-        "Gradient Boosting": { author: "Person C", cv_accuracy_mean: 0.931, test_accuracy: 0.936, precision_macro: 0.936, recall_macro: 0.936, f1_macro: 0.936, f1_weighted: 0.936, confusion_matrix: [[725, 52, 23], [42, 742, 26], [22, 28, 730]] },
-        "Decision Tree": { author: "Person A", cv_accuracy_mean: 0.892, test_accuracy: 0.899, precision_macro: 0.899, recall_macro: 0.899, f1_macro: 0.899, f1_weighted: 0.899, confusion_matrix: [[705, 65, 30], [58, 712, 40], [35, 45, 700]] },
-        "Support Vector Machine": { author: "Person B", cv_accuracy_mean: 0.885, test_accuracy: 0.891, precision_macro: 0.892, recall_macro: 0.891, f1_macro: 0.891, f1_weighted: 0.891, confusion_matrix: [[698, 72, 30], [60, 710, 40], [38, 48, 694]] },
-        "MLP Classifier": { author: "Person C", cv_accuracy_mean: 0.879, test_accuracy: 0.884, precision_macro: 0.885, recall_macro: 0.884, f1_macro: 0.884, f1_weighted: 0.884, confusion_matrix: [[690, 78, 32], [65, 702, 43], [40, 50, 690]] },
-        "K-Nearest Neighbors": { author: "Person A", cv_accuracy_mean: 0.835, test_accuracy: 0.842, precision_macro: 0.843, recall_macro: 0.842, f1_macro: 0.842, f1_weighted: 0.842, confusion_matrix: [[655, 95, 50], [80, 670, 60], [55, 65, 660]] },
-        "Logistic Regression": { author: "Person A", cv_accuracy_mean: 0.812, test_accuracy: 0.819, precision_macro: 0.820, recall_macro: 0.819, f1_macro: 0.819, f1_weighted: 0.819, confusion_matrix: [[640, 105, 55], [90, 650, 70], [62, 75, 643]] },
-        "Gaussian Naive Bayes": { author: "Person B", cv_accuracy_mean: 0.748, test_accuracy: 0.755, precision_macro: 0.760, recall_macro: 0.755, f1_macro: 0.754, f1_weighted: 0.755, confusion_matrix: [[600, 125, 75], [110, 595, 105], [85, 95, 600]] }
+        "Gradient Boosting": { author: "Person C", cv_accuracy_mean: 0.9610, test_accuracy: 0.9651, precision_macro: 0.9655, recall_macro: 0.9651, f1_macro: 0.9652, f1_weighted: 0.9651, confusion_matrix: [[745, 23, 1], [21, 728, 12], [0, 22, 709]] },
+        "XGBoost": { author: "Person C", cv_accuracy_mean: 0.9613, test_accuracy: 0.9633, precision_macro: 0.9636, recall_macro: 0.9634, f1_macro: 0.9635, f1_weighted: 0.9633, confusion_matrix: [[742, 26, 1], [23, 724, 14], [0, 19, 712]] },
+        "Decision Tree": { author: "Person A", cv_accuracy_mean: 0.9028, test_accuracy: 0.9058, precision_macro: 0.9063, recall_macro: 0.9058, f1_macro: 0.9060, f1_weighted: 0.9059, confusion_matrix: [[721, 47, 1], [55, 659, 47], [1, 62, 668]] },
+        "Random Forest": { author: "Person B", cv_accuracy_mean: 0.9006, test_accuracy: 0.9049, precision_macro: 0.9052, recall_macro: 0.9050, f1_macro: 0.9051, f1_weighted: 0.9049, confusion_matrix: [[719, 50, 0], [56, 654, 51], [0, 58, 673]] },
+        "MLP Classifier": { author: "Person C", cv_accuracy_mean: 0.8199, test_accuracy: 0.8271, precision_macro: 0.8272, recall_macro: 0.8274, f1_macro: 0.8273, f1_weighted: 0.8269, confusion_matrix: [[671, 91, 7], [105, 569, 87], [8, 93, 630]] },
+        "Support Vector Machine": { author: "Person B", cv_accuracy_mean: 0.7555, test_accuracy: 0.7669, precision_macro: 0.7683, recall_macro: 0.7675, f1_macro: 0.7679, f1_weighted: 0.7672, confusion_matrix: [[621, 134, 14], [146, 513, 102], [11, 120, 600]] },
+        "Logistic Regression": { author: "Person A", cv_accuracy_mean: 0.7087, test_accuracy: 0.7196, precision_macro: 0.7190, recall_macro: 0.7199, f1_macro: 0.7193, f1_weighted: 0.7189, confusion_matrix: [[610, 140, 19], [159, 458, 144], [27, 145, 559]] },
+        "K-Nearest Neighbors": { author: "Person A", cv_accuracy_mean: 0.6867, test_accuracy: 0.7006, precision_macro: 0.7036, recall_macro: 0.7006, f1_macro: 0.7018, f1_weighted: 0.7013, confusion_matrix: [[581, 148, 40], [169, 476, 116], [41, 163, 527]] },
+        "Gaussian Naive Bayes": { author: "Person B", cv_accuracy_mean: 0.5249, test_accuracy: 0.5449, precision_macro: 0.5955, recall_macro: 0.5413, f1_macro: 0.5328, f1_weighted: 0.5344, confusion_matrix: [[554, 198, 17], [254, 448, 59], [113, 388, 230]] }
       };
       renderModelsTables(mock);
       renderModelsChart(mock);

@@ -105,7 +105,7 @@ def test_model_artifacts_loading():
         assert hasattr(clf, "predict")
 
 def test_backend_api_predict():
-    """Test FastAPI prediction endpoint directly."""
+    """Test FastAPI prediction endpoint directly with Gradient Boosting and other models."""
     from backend.app import app
     from fastapi.testclient import TestClient
 
@@ -120,9 +120,19 @@ def test_backend_api_predict():
     assert res_health.status_code == 200
     assert res_health.json()["status"] == "healthy"
 
-    # Prediction test
+    # Stats check
+    res_stats = client.get("/api/stats")
+    assert res_stats.status_code == 200
+    assert "records_summary" in res_stats.json()
+
+    # Models benchmark check
+    res_models = client.get("/api/models")
+    assert res_models.status_code == 200
+    assert len(res_models.json()) == 9
+
+    # Prediction test with best model (Gradient Boosting)
     payload = {
-        "model_name": "Random Forest",
+        "model_name": "Gradient Boosting",
         "origin_state_abbr": "CO",
         "airport_name": "DENVER INTL AIRPORT",
         "flight_month": 9,
@@ -152,6 +162,101 @@ def test_backend_api_predict():
     assert "class_probabilities" in data
     assert "contributing_factors" in data
     assert len(data["contributing_factors"]) > 0
+
+def test_backend_api_predict_all_9_models():
+    """Verify that every single one of the 9 trained models successfully generates predictions via API."""
+    from backend.app import app
+    from fastapi.testclient import TestClient
+
+    prep_path = MODELS_DIR / "preprocessor.joblib"
+    if not prep_path.exists():
+        pytest.skip("Models not yet finished training.")
+
+    client = TestClient(app)
+
+    all_models = [
+        "Logistic Regression",
+        "Decision Tree",
+        "K-Nearest Neighbors",
+        "Random Forest",
+        "Gaussian Naive Bayes",
+        "Support Vector Machine",
+        "Gradient Boosting",
+        "MLP Classifier",
+        "XGBoost",
+    ]
+
+    base_payload = {
+        "origin_state_abbr": "IL",
+        "airport_name": "CHICAGO O'HARE INTL ARPT",
+        "flight_month": 4,
+        "flight_year": 2023,
+        "altitude": 2000.0,
+        "flight_phase": "Climb",
+        "wildlife_size": "Medium",
+        "conditions_sky": "Some Cloud",
+        "conditions_precipitation": "No Precipitation",
+        "pilot_warned": "Yes",
+        "engines": 2.0,
+        "nearest_turbine_km": 35.0,
+        "avg_temp_c": 12.0,
+        "avg_humidity_pct": 55.0,
+        "avg_wind_speed_kmh": 18.0,
+        "avg_visibility_km": 16.0,
+        "total_precip_mm": 0.0,
+        "avg_pressure_hpa": 980.0
+    }
+
+    for model_name in all_models:
+        p = dict(base_payload)
+        p["model_name"] = model_name
+        res = client.post("/api/predict", json=p)
+        assert res.status_code == 200, f"Inference failed for model: {model_name}"
+        data = res.json()
+        assert data["risk_target"] in [0, 1, 2]
+        assert data["confidence"] > 0.0
+
+def test_backend_api_compare_all_endpoint():
+    """Test the /api/predict/compare-all endpoint for 9-model consensus and agreement."""
+    from backend.app import app
+    from fastapi.testclient import TestClient
+
+    prep_path = MODELS_DIR / "preprocessor.joblib"
+    if not prep_path.exists():
+        pytest.skip("Models not yet finished training.")
+
+    client = TestClient(app)
+
+    payload = {
+        "origin_state_abbr": "NY",
+        "airport_name": "JOHN F KENNEDY INTL",
+        "flight_month": 10,
+        "flight_year": 2024,
+        "altitude": 800.0,
+        "flight_phase": "Approach",
+        "wildlife_size": "Large",
+        "conditions_sky": "Overcast",
+        "conditions_precipitation": "Rain",
+        "pilot_warned": "No",
+        "engines": 2.0,
+        "nearest_turbine_km": 15.0,
+        "avg_temp_c": 14.0,
+        "avg_humidity_pct": 70.0,
+        "avg_wind_speed_kmh": 28.0,
+        "avg_visibility_km": 8.0,
+        "total_precip_mm": 6.0,
+        "avg_pressure_hpa": 1008.0
+    }
+
+    res = client.post("/api/predict/compare-all", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+
+    assert "consensus_class" in data
+    assert data["consensus_class"] in [0, 1, 2]
+    assert data["models_count"] == 9
+    assert len(data["model_results"]) == 9
+    assert data["consensus_agreement_pct"] > 0.0
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
