@@ -185,9 +185,9 @@ def get_stats():
             "ml_training_samples": 11304,
         },
         "target_distribution": {
-            "Low Risk (0)": 3787,
-            "Medium Risk (1)": 3832,
-            "High Risk (2)": 3685
+            "Low Risk (0)": 3843,
+            "Medium Risk (1)": 3804,
+            "High Risk (2)": 3657
         },
         "models_count": 9,
         "best_performing_model": "Gradient Boosting (96.5% Test Accuracy / 0.965 F1)"
