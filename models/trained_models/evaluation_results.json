@@ -1,6 +1,7 @@
 {
   "Logistic Regression": {
     "author": "Person A",
+    "random_state": 42,
     "cv_accuracy_mean": 0.7087,
     "cv_accuracy_std": 0.0063,
     "test_accuracy": 0.7196,
@@ -24,10 +25,12 @@
         145,
         559
       ]
-    ]
+    ],
+    "training_time_seconds": 4.42
   },
   "Decision Tree": {
     "author": "Person A",
+    "random_state": 42,
     "cv_accuracy_mean": 0.9028,
     "cv_accuracy_std": 0.0035,
     "test_accuracy": 0.9058,
@@ -51,10 +54,12 @@
         62,
         668
       ]
-    ]
+    ],
+    "training_time_seconds": 2.53
   },
   "K-Nearest Neighbors": {
     "author": "Person A",
+    "random_state": 42,
     "cv_accuracy_mean": 0.6867,
     "cv_accuracy_std": 0.0076,
     "test_accuracy": 0.7006,
@@ -78,10 +83,12 @@
         163,
         527
       ]
-    ]
+    ],
+    "training_time_seconds": 2.24
   },
   "Random Forest": {
     "author": "Person B",
+    "random_state": 42,
     "cv_accuracy_mean": 0.9006,
     "cv_accuracy_std": 0.0121,
     "test_accuracy": 0.9049,
@@ -105,10 +112,12 @@
         58,
         673
       ]
-    ]
+    ],
+    "training_time_seconds": 3.3
   },
   "Gaussian Naive Bayes": {
     "author": "Person B",
+    "random_state": 42,
     "cv_accuracy_mean": 0.5249,
     "cv_accuracy_std": 0.0559,
     "test_accuracy": 0.5449,
@@ -132,10 +141,12 @@
         388,
         230
       ]
-    ]
+    ],
+    "training_time_seconds": 0.19
   },
   "Support Vector Machine": {
     "author": "Person B",
+    "random_state": 42,
     "cv_accuracy_mean": 0.7555,
     "cv_accuracy_std": 0.007,
     "test_accuracy": 0.7669,
@@ -159,10 +170,12 @@
         120,
         600
       ]
-    ]
+    ],
+    "training_time_seconds": 50.25
   },
   "Gradient Boosting": {
     "author": "Person C",
+    "random_state": 42,
     "cv_accuracy_mean": 0.961,
     "cv_accuracy_std": 0.0016,
     "test_accuracy": 0.9651,
@@ -186,44 +199,48 @@
         22,
         709
       ]
-    ]
+    ],
+    "training_time_seconds": 36.73
   },
   "MLP Classifier": {
     "author": "Person C",
-    "cv_accuracy_mean": 0.8199,
-    "cv_accuracy_std": 0.0045,
-    "test_accuracy": 0.8271,
-    "precision_macro": 0.8272,
-    "recall_macro": 0.8274,
-    "f1_macro": 0.8273,
-    "f1_weighted": 0.8269,
+    "random_state": 42,
+    "cv_accuracy_mean": 0.7981,
+    "cv_accuracy_std": 0.0069,
+    "test_accuracy": 0.8019,
+    "precision_macro": 0.8098,
+    "recall_macro": 0.802,
+    "f1_macro": 0.8045,
+    "f1_weighted": 0.8041,
     "confusion_matrix": [
       [
-        671,
-        91,
-        7
+        624,
+        137,
+        8
       ],
       [
-        105,
-        569,
-        87
+        86,
+        591,
+        84
       ],
       [
-        8,
-        93,
-        630
+        6,
+        127,
+        598
       ]
-    ]
+    ],
+    "training_time_seconds": 13.7
   },
   "XGBoost": {
     "author": "Person C",
-    "cv_accuracy_mean": 0.9613,
-    "cv_accuracy_std": 0.0028,
-    "test_accuracy": 0.9633,
-    "precision_macro": 0.9636,
-    "recall_macro": 0.9634,
-    "f1_macro": 0.9635,
-    "f1_weighted": 0.9633,
+    "random_state": 42,
+    "cv_accuracy_mean": 0.9596,
+    "cv_accuracy_std": 0.0027,
+    "test_accuracy": 0.9637,
+    "precision_macro": 0.964,
+    "recall_macro": 0.9639,
+    "f1_macro": 0.9639,
+    "f1_weighted": 0.9638,
     "confusion_matrix": [
       [
         742,
@@ -231,15 +248,16 @@
         1
       ],
       [
-        23,
+        22,
         724,
-        14
+        15
       ],
       [
         0,
-        19,
-        712
+        18,
+        713
       ]
-    ]
+    ],
+    "training_time_seconds": 2.98
   }
 }

@@ -278,6 +278,10 @@ def _build_features_dataframe(req: PredictionRequest):
 
 def _generate_diagnostics(req: PredictionRequest, meta_info: dict, pred_class: int):
     factors = []
+    # Safely coerce optional fields — may be None if caller sent null values
+    turbine_km = float(req.nearest_turbine_km) if req.nearest_turbine_km is not None else 25.0
+    visibility_km = float(req.avg_visibility_km) if req.avg_visibility_km is not None else 16.0
+
     if req.altitude < 1000:
         factors.append({"factor": "Low Flight Altitude", "impact": "High exposure near ground/take-off/landing zone", "severity": "high"})
     elif req.altitude < 3000:
@@ -286,16 +290,16 @@ def _generate_diagnostics(req: PredictionRequest, meta_info: dict, pred_class: i
     if meta_info["is_peak"] == 1:
         factors.append({"factor": "Peak Migration Season", "impact": f"Heavy bird flyway movement active ({meta_info['season']}, month {req.flight_month})", "severity": "high"})
 
-    if req.nearest_turbine_km < 10.0:
-        factors.append({"factor": "Wind Farm Proximity", "impact": f"Very close ({req.nearest_turbine_km} km) to operational wind turbines", "severity": "high"})
-    elif req.nearest_turbine_km < 30.0:
-        factors.append({"factor": "Wind Farm Vicinity", "impact": f"Within {req.nearest_turbine_km} km radius of wind turbine clusters", "severity": "medium"})
+    if turbine_km < 10.0:
+        factors.append({"factor": "Wind Farm Proximity", "impact": f"Very close ({turbine_km} km) to operational wind turbines", "severity": "high"})
+    elif turbine_km < 30.0:
+        factors.append({"factor": "Wind Farm Vicinity", "impact": f"Within {turbine_km} km radius of wind turbine clusters", "severity": "medium"})
 
     if req.wildlife_size == "Large":
         factors.append({"factor": "Large Bird Species Threat", "impact": "High kinetic damage potential (geese, raptors, pelicans)", "severity": "high"})
 
-    if req.avg_visibility_km < 8.0:
-        factors.append({"factor": "Reduced Visibility", "impact": f"Low atmospheric visibility ({req.avg_visibility_km} km) impairs visual detection", "severity": "medium"})
+    if visibility_km < 8.0:
+        factors.append({"factor": "Reduced Visibility", "impact": f"Low atmospheric visibility ({visibility_km} km) impairs visual detection", "severity": "medium"})
 
     if not factors:
         factors.append({"factor": "Clear Atmospheric Corridor", "impact": "Favorable environmental conditions with low exposure", "severity": "low"})

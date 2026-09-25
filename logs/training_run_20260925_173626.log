@@ -1,0 +1,193 @@
+2026-09-25 17:36:26 | INFO     | ================================================================================
+2026-09-25 17:36:26 | INFO     | STEP 3: TRAINING ALL 9 MACHINE LEARNING MODELS
+2026-09-25 17:36:26 | INFO     | Run started : 2026-09-25 17:36:26
+2026-09-25 17:36:26 | INFO     | Random seed : RANDOM_STATE = 42  |  np.random.seed(42)
+2026-09-25 17:36:26 | INFO     | Log file    : logs\training_run_20260925_173626.log
+2026-09-25 17:36:26 | INFO     | ================================================================================
+2026-09-25 17:36:26 | INFO     | Loaded dataset: 11,304 rows x 29 columns
+2026-09-25 17:36:26 | DEBUG    | Columns: ['flight_date', 'flight_month', 'flight_year', 'airport_name', 'origin_state_abbr', 'operator', 'aircraft_type', 'engines', 'flight_phase', 'altitude', 'conditions_sky', 'conditions_precipitation', 'wildlife_species', 'pilot_warned', 'wildlife_size', 'latitude', 'longitude', 'elevation_ft', 'nearest_turbine_km', 'avg_temp_c', 'avg_humidity_pct', 'avg_wind_speed_kmh', 'avg_visibility_km', 'total_precip_mm', 'avg_pressure_hpa', 'season', 'migration_density', 'is_peak_migration', 'risk_target']
+2026-09-25 17:36:26 | INFO     | Target class distribution: {0: 3843, 1: 3804, 2: 3657}
+2026-09-25 17:36:26 | INFO     | Features: 23 total (16 numeric, 7 categorical)
+2026-09-25 17:36:26 | DEBUG    | Numeric:     ['flight_month', 'flight_year', 'engines', 'altitude', 'latitude', 'longitude', 'elevation_ft', 'nearest_turbine_km', 'avg_temp_c', 'avg_humidity_pct', 'avg_wind_speed_kmh', 'avg_visibility_km', 'total_precip_mm', 'avg_pressure_hpa', 'migration_density', 'is_peak_migration']
+2026-09-25 17:36:26 | DEBUG    | Categorical: ['origin_state_abbr', 'flight_phase', 'conditions_sky', 'conditions_precipitation', 'pilot_warned', 'wildlife_size', 'season']
+2026-09-25 17:36:26 | INFO     | Train/Test split: 9,043 train | 2,261 test (80/20 stratified, random_state=42)
+2026-09-25 17:36:26 | INFO     | Preprocessor fitted on training data only (zero leakage). Saved.
+2026-09-25 17:36:26 | DEBUG    | Transformed — Train: (9043, 51) | Test: (2261, 51)
+2026-09-25 17:36:26 | INFO     | 
+Starting training & 5-fold cross-validation...
+
+2026-09-25 17:36:26 | INFO     | Model                      | Author    |  CV Acc | Test Acc |  F1 Mac |   F1 Wt |   Time
+2026-09-25 17:36:26 | INFO     | ----------------------------------------------------------------------------------------
+2026-09-25 17:36:26 | DEBUG    | [Logistic Regression] BEGIN — random_state=42
+2026-09-25 17:36:30 | DEBUG    | [Logistic Regression] CV fold accuracies: [0.7148, 0.7048, 0.7148, 0.6986, 0.7107]
+2026-09-25 17:36:30 | DEBUG    | [Logistic Regression] CV mean=0.7087  std=0.0063
+2026-09-25 17:36:31 | DEBUG    | [Logistic Regression] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.77      0.79      0.78       769
+           1       0.62      0.60      0.61       761
+           2       0.77      0.76      0.77       731
+
+    accuracy                           0.72      2261
+   macro avg       0.72      0.72      0.72      2261
+weighted avg       0.72      0.72      0.72      2261
+
+2026-09-25 17:36:31 | DEBUG    | [Logistic Regression] Confusion Matrix: [[610, 140, 19], [159, 458, 144], [27, 145, 559]]
+2026-09-25 17:36:31 | DEBUG    | [Logistic Regression] Training time: 4.42s
+2026-09-25 17:36:31 | INFO     | Logistic Regression        | Person A  |  0.7087 |   0.7196 |  0.7193 |  0.7189 |  4.42s
+2026-09-25 17:36:31 | DEBUG    | [Logistic Regression] Saved: models/trained_models/logistic_regression.joblib
+2026-09-25 17:36:31 | DEBUG    | [Decision Tree] BEGIN — random_state=42
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] CV fold accuracies: [0.9033, 0.9082, 0.8972, 0.9032, 0.9021]
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] CV mean=0.9028  std=0.0035
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.93      0.94      0.93       769
+           1       0.86      0.87      0.86       761
+           2       0.93      0.91      0.92       731
+
+    accuracy                           0.91      2261
+   macro avg       0.91      0.91      0.91      2261
+weighted avg       0.91      0.91      0.91      2261
+
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] Confusion Matrix: [[721, 47, 1], [55, 659, 47], [1, 62, 668]]
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] Training time: 2.53s
+2026-09-25 17:36:33 | INFO     | Decision Tree              | Person A  |  0.9028 |   0.9058 |  0.9060 |  0.9059 |  2.53s
+2026-09-25 17:36:33 | DEBUG    | [Decision Tree] Saved: models/trained_models/decision_tree.joblib
+2026-09-25 17:36:33 | DEBUG    | [K-Nearest Neighbors] BEGIN — random_state=42
+2026-09-25 17:36:35 | DEBUG    | [K-Nearest Neighbors] CV fold accuracies: [0.686, 0.6993, 0.6899, 0.677, 0.6814]
+2026-09-25 17:36:35 | DEBUG    | [K-Nearest Neighbors] CV mean=0.6867  std=0.0076
+2026-09-25 17:36:36 | DEBUG    | [K-Nearest Neighbors] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.73      0.76      0.74       769
+           1       0.60      0.63      0.61       761
+           2       0.77      0.72      0.75       731
+
+    accuracy                           0.70      2261
+   macro avg       0.70      0.70      0.70      2261
+weighted avg       0.70      0.70      0.70      2261
+
+2026-09-25 17:36:36 | DEBUG    | [K-Nearest Neighbors] Confusion Matrix: [[581, 148, 40], [169, 476, 116], [41, 163, 527]]
+2026-09-25 17:36:36 | DEBUG    | [K-Nearest Neighbors] Training time: 2.24s
+2026-09-25 17:36:36 | INFO     | K-Nearest Neighbors        | Person A  |  0.6867 |   0.7006 |  0.7018 |  0.7013 |  2.24s
+2026-09-25 17:36:36 | DEBUG    | [K-Nearest Neighbors] Saved: models/trained_models/k_nearest_neighbors.joblib
+2026-09-25 17:36:36 | DEBUG    | [Random Forest] BEGIN — random_state=42
+2026-09-25 17:36:38 | DEBUG    | [Random Forest] CV fold accuracies: [0.9143, 0.8999, 0.8795, 0.9104, 0.8988]
+2026-09-25 17:36:38 | DEBUG    | [Random Forest] CV mean=0.9006  std=0.0121
+2026-09-25 17:36:39 | DEBUG    | [Random Forest] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.93      0.93      0.93       769
+           1       0.86      0.86      0.86       761
+           2       0.93      0.92      0.93       731
+
+    accuracy                           0.90      2261
+   macro avg       0.91      0.91      0.91      2261
+weighted avg       0.90      0.90      0.90      2261
+
+2026-09-25 17:36:39 | DEBUG    | [Random Forest] Confusion Matrix: [[719, 50, 0], [56, 654, 51], [0, 58, 673]]
+2026-09-25 17:36:39 | DEBUG    | [Random Forest] Training time: 3.3s
+2026-09-25 17:36:39 | INFO     | Random Forest              | Person B  |  0.9006 |   0.9049 |  0.9051 |  0.9049 |   3.3s
+2026-09-25 17:36:39 | DEBUG    | [Random Forest] Saved: models/trained_models/random_forest.joblib
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] BEGIN — random_state=42
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] CV fold accuracies: [0.5489, 0.4395, 0.4798, 0.5769, 0.5796]
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] CV mean=0.5249  std=0.0559
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.60      0.72      0.66       769
+           1       0.43      0.59      0.50       761
+           2       0.75      0.31      0.44       731
+
+    accuracy                           0.54      2261
+   macro avg       0.60      0.54      0.53      2261
+weighted avg       0.59      0.54      0.53      2261
+
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] Confusion Matrix: [[554, 198, 17], [254, 448, 59], [113, 388, 230]]
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] Training time: 0.19s
+2026-09-25 17:36:39 | INFO     | Gaussian Naive Bayes       | Person B  |  0.5249 |   0.5449 |  0.5328 |  0.5344 |  0.19s
+2026-09-25 17:36:39 | DEBUG    | [Gaussian Naive Bayes] Saved: models/trained_models/gaussian_naive_bayes.joblib
+2026-09-25 17:36:39 | DEBUG    | [Support Vector Machine] BEGIN — random_state=42
+2026-09-25 17:37:13 | DEBUG    | [Support Vector Machine] CV fold accuracies: [0.7673, 0.7512, 0.7463, 0.7555, 0.7572]
+2026-09-25 17:37:13 | DEBUG    | [Support Vector Machine] CV mean=0.7555  std=0.0070
+2026-09-25 17:37:30 | DEBUG    | [Support Vector Machine] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.80      0.81      0.80       769
+           1       0.67      0.67      0.67       761
+           2       0.84      0.82      0.83       731
+
+    accuracy                           0.77      2261
+   macro avg       0.77      0.77      0.77      2261
+weighted avg       0.77      0.77      0.77      2261
+
+2026-09-25 17:37:30 | DEBUG    | [Support Vector Machine] Confusion Matrix: [[621, 134, 14], [146, 513, 102], [11, 120, 600]]
+2026-09-25 17:37:30 | DEBUG    | [Support Vector Machine] Training time: 50.25s
+2026-09-25 17:37:30 | INFO     | Support Vector Machine     | Person B  |  0.7555 |   0.7669 |  0.7679 |  0.7672 | 50.25s
+2026-09-25 17:37:30 | DEBUG    | [Support Vector Machine] Saved: models/trained_models/support_vector_machine.joblib
+2026-09-25 17:37:30 | DEBUG    | [Gradient Boosting] BEGIN — random_state=42
+2026-09-25 17:37:52 | DEBUG    | [Gradient Boosting] CV fold accuracies: [0.963, 0.9619, 0.9619, 0.9591, 0.9591]
+2026-09-25 17:37:52 | DEBUG    | [Gradient Boosting] CV mean=0.9610  std=0.0016
+2026-09-25 17:38:06 | DEBUG    | [Gradient Boosting] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.97      0.97      0.97       769
+           1       0.94      0.96      0.95       761
+           2       0.98      0.97      0.98       731
+
+    accuracy                           0.97      2261
+   macro avg       0.97      0.97      0.97      2261
+weighted avg       0.97      0.97      0.97      2261
+
+2026-09-25 17:38:06 | DEBUG    | [Gradient Boosting] Confusion Matrix: [[745, 23, 1], [21, 728, 12], [0, 22, 709]]
+2026-09-25 17:38:06 | DEBUG    | [Gradient Boosting] Training time: 36.73s
+2026-09-25 17:38:06 | INFO     | Gradient Boosting          | Person C  |  0.9610 |   0.9651 |  0.9652 |  0.9651 | 36.73s
+2026-09-25 17:38:06 | DEBUG    | [Gradient Boosting] Saved: models/trained_models/gradient_boosting.joblib
+2026-09-25 17:38:06 | DEBUG    | [MLP Classifier] BEGIN — random_state=42
+2026-09-25 17:38:14 | DEBUG    | [MLP Classifier] CV fold accuracies: [0.8032, 0.8004, 0.7855, 0.8048, 0.7965]
+2026-09-25 17:38:14 | DEBUG    | [MLP Classifier] CV mean=0.7981  std=0.0069
+2026-09-25 17:38:20 | DEBUG    | [MLP] Early stopping: converged at epoch 123 / 350 (n_iter_no_change=15, validation_fraction=0.10)
+2026-09-25 17:38:20 | INFO     |   [MLP] Early stopping at epoch 123 (max=350)
+2026-09-25 17:38:20 | DEBUG    | [MLP Classifier] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.87      0.81      0.84       769
+           1       0.69      0.78      0.73       761
+           2       0.87      0.82      0.84       731
+
+    accuracy                           0.80      2261
+   macro avg       0.81      0.80      0.80      2261
+weighted avg       0.81      0.80      0.80      2261
+
+2026-09-25 17:38:20 | DEBUG    | [MLP Classifier] Confusion Matrix: [[624, 137, 8], [86, 591, 84], [6, 127, 598]]
+2026-09-25 17:38:20 | DEBUG    | [MLP Classifier] Training time: 13.7s
+2026-09-25 17:38:20 | INFO     | MLP Classifier             | Person C  |  0.7981 |   0.8019 |  0.8045 |  0.8041 |  13.7s
+2026-09-25 17:38:20 | DEBUG    | [MLP Classifier] Saved: models/trained_models/mlp_classifier.joblib
+2026-09-25 17:38:20 | DEBUG    | [XGBoost] BEGIN — random_state=42
+2026-09-25 17:38:22 | DEBUG    | [XGBoost] CV fold accuracies: [0.9619, 0.958, 0.9552, 0.9624, 0.9607]
+2026-09-25 17:38:22 | DEBUG    | [XGBoost] CV mean=0.9596  std=0.0027
+2026-09-25 17:38:23 | DEBUG    | [XGBoost] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.97      0.96      0.97       769
+           1       0.94      0.95      0.95       761
+           2       0.98      0.98      0.98       731
+
+    accuracy                           0.96      2261
+   macro avg       0.96      0.96      0.96      2261
+weighted avg       0.96      0.96      0.96      2261
+
+2026-09-25 17:38:23 | DEBUG    | [XGBoost] Confusion Matrix: [[742, 26, 1], [22, 724, 15], [0, 18, 713]]
+2026-09-25 17:38:23 | DEBUG    | [XGBoost] Training time: 2.98s
+2026-09-25 17:38:23 | INFO     | XGBoost                    | Person C  |  0.9596 |   0.9637 |  0.9639 |  0.9638 |  2.98s
+2026-09-25 17:38:23 | DEBUG    | [XGBoost] Saved: models/trained_models/xgboost.joblib
+2026-09-25 17:38:23 | INFO     | 
+Best model: Gradient Boosting (F1 Macro=0.9652) -> best_model.joblib
+2026-09-25 17:38:23 | INFO     | 
+================================================================================
+2026-09-25 17:38:23 | INFO     | ALL 9 MODELS TRAINED AND SAVED SUCCESSFULLY!
+2026-09-25 17:38:23 | INFO     | Best Model   : Gradient Boosting (Macro F1 = 0.9652)
+2026-09-25 17:38:23 | INFO     | Metrics JSON : models/trained_models/evaluation_results.json
+2026-09-25 17:38:23 | INFO     | Training log : logs\training_run_20260925_173626.log
+2026-09-25 17:38:23 | INFO     | ================================================================================
