@@ -80,3 +80,10 @@ secrets/
 *.pem
 *.key
 *.cert
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+data/auth.db
+

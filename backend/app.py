@@ -50,6 +50,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Authentication & User Identity Router
+from backend.auth import auth_router
+app.include_router(auth_router)
+
 # Cached artifacts
 CACHED_MODELS: Dict[str, Any] = {}
 CACHED_PREPROCESSOR = None

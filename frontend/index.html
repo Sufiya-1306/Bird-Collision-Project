@@ -83,6 +83,22 @@
       <a href="https://github.com/Sufiya-1306/Bird-Collision-Project" target="_blank" class="text-slate-400 hover:text-white transition-colors">
         <i data-lucide="github" class="w-5 h-5"></i>
       </a>
+
+      <!-- User Authentication Controls -->
+      <div id="nav-auth-container" class="flex items-center">
+        <button id="btn-open-signin" onclick="openAuthModal('signin')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-semibold transition-all">
+          <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+          <span>Sign In</span>
+        </button>
+        <div id="user-profile-badge" class="hidden flex items-center gap-2 text-xs bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700/60">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span id="user-display-name" class="font-medium text-slate-200">User</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-semibold">Verified</span>
+          <button onclick="handleLogout()" title="Sign Out" class="ml-1 text-slate-400 hover:text-rose-400 transition-colors">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -725,6 +741,173 @@
     </main>
   </div>
 
+  <!-- Authentication & Identity Verification Modal -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card w-full max-w-md p-6 rounded-2xl border border-slate-700/80 shadow-2xl relative bg-slate-900/95 space-y-4">
+      
+      <!-- Modal Close Button -->
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Modal Brand Header -->
+      <div class="flex items-center gap-2.5 border-b border-slate-800 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-600/30 text-blue-400 flex items-center justify-center border border-blue-500/40">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 id="auth-modal-title" class="font-bold text-base text-white">Aviation Safety Portal Access</h3>
+          <p class="text-[11px] text-slate-400">Secure Identity & Credential Management</p>
+        </div>
+      </div>
+
+      <!-- Alert Banners for Error & Success -->
+      <div id="auth-alert-error" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+        <span id="auth-error-text"></span>
+      </div>
+      <div id="auth-alert-success" class="hidden p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-start gap-2">
+        <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 mt-0.5"></i>
+        <span id="auth-success-text"></span>
+      </div>
+
+      <!-- VIEW 1: SIGN IN -->
+      <div id="view-signin" class="space-y-4">
+        <div>
+          <h4 class="text-sm font-semibold text-white">Sign In to Your Account</h4>
+          <p class="text-xs text-slate-400">Enter your registered email or phone to access the safety platform.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); handleSignIn();" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Email or Phone Number</label>
+            <input id="signin-identifier" type="text" required placeholder="pilot@airport.org or +13125550199" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-medium text-slate-300">Password</label>
+              <button type="button" onclick="switchAuthView('forgot')" class="text-xs text-blue-400 hover:text-blue-300 transition-colors">Forgot Password?</button>
+            </div>
+            <input id="signin-password" type="password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" id="btn-signin-submit" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-1.5">
+            <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Sign In
+          </button>
+        </form>
+        <div class="text-center pt-2 border-t border-slate-800 text-xs text-slate-400">
+          Don't have an account? 
+          <button type="button" onclick="switchAuthView('register')" class="text-blue-400 hover:text-blue-300 font-semibold ml-1">Create Account</button>
+        </div>
+      </div>
+
+      <!-- VIEW 2: REGISTER -->
+      <div id="view-register" class="space-y-3 hidden">
+        <div>
+          <h4 class="text-sm font-semibold text-white">Create Aviation Safety Account</h4>
+          <p class="text-xs text-slate-400">A verification code will be sent to confirm your email.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); handleRegister();" class="space-y-2.5">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-0.5">Full Name</label>
+            <input id="reg-name" type="text" required placeholder="Captain Meera Joshi" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-0.5">Official / Genuine Email</label>
+            <input id="reg-email" type="email" required placeholder="name@airport-authority.org" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+            <span class="text-[10px] text-slate-500">Disposable or temporary email addresses are rejected.</span>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-0.5">Phone Number (Optional)</label>
+            <input id="reg-phone" type="tel" placeholder="+13125550199" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-0.5">Password</label>
+            <input id="reg-password" type="password" required minlength="8" placeholder="At least 8 chars with letters & numbers" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" id="btn-register-submit" class="w-full mt-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-1.5">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Register Account
+          </button>
+        </form>
+        <div class="text-center pt-2 border-t border-slate-800 text-xs text-slate-400">
+          Already have an account? 
+          <button type="button" onclick="switchAuthView('signin')" class="text-blue-400 hover:text-blue-300 font-semibold ml-1">Sign In</button>
+        </div>
+      </div>
+
+      <!-- VIEW 3: VERIFY EMAIL -->
+      <div id="view-verify" class="space-y-4 hidden">
+        <div>
+          <h4 class="text-sm font-semibold text-white">Email Identity Verification</h4>
+          <p class="text-xs text-slate-400">
+            Enter the 6-digit verification code sent to <span id="verify-email-display" class="font-semibold text-blue-400"></span>.
+          </p>
+        </div>
+        <form onsubmit="event.preventDefault(); handleVerifyEmail();" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">6-Digit Verification Code</label>
+            <input id="verify-code-input" type="text" maxlength="6" required placeholder="123456" class="w-full text-center tracking-[0.4em] font-mono text-lg bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-blue-400 font-bold placeholder-slate-600 focus:outline-none focus:border-blue-500">
+            <span class="text-[11px] text-slate-500 block text-center mt-1">Codes expire 10 minutes after issuance.</span>
+          </div>
+          <button type="submit" id="btn-verify-submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i> Verify & Sign In
+          </button>
+          <div class="flex justify-between items-center pt-1 text-xs">
+            <button type="button" onclick="handleResendCode()" id="btn-resend-code" class="text-blue-400 hover:text-blue-300 font-medium">Resend Code</button>
+            <button type="button" onclick="switchAuthView('signin')" class="text-slate-400 hover:text-slate-300">Back to Sign In</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- VIEW 4: FORGOT PASSWORD -->
+      <div id="view-forgot" class="space-y-4 hidden">
+        <div>
+          <h4 class="text-sm font-semibold text-white">Verify Identity for Password Reset</h4>
+          <p class="text-xs text-slate-400">Enter your registered email address or phone number to verify your identity before resetting password.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); handleForgotPassword();" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Registered Email or Phone</label>
+            <input id="forgot-identifier" type="text" required placeholder="pilot@airport.org or +13125550199" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" id="btn-forgot-submit" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-1.5">
+            <i data-lucide="key" class="w-3.5 h-3.5"></i> Send Verification Code
+          </button>
+        </form>
+        <div class="text-center pt-2 border-t border-slate-800 text-xs">
+          <button type="button" onclick="switchAuthView('signin')" class="text-slate-400 hover:text-slate-300">Back to Sign In</button>
+        </div>
+      </div>
+
+      <!-- VIEW 5: RESET PASSWORD -->
+      <div id="view-reset" class="space-y-4 hidden">
+        <div>
+          <h4 class="text-sm font-semibold text-white">Reset Account Password</h4>
+          <p class="text-xs text-slate-400">Enter the verification code received on your registered contact and your new password.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); handleResetPassword();" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">6-Digit Verification Code</label>
+            <input id="reset-code-input" type="text" maxlength="6" required placeholder="123456" class="w-full text-center tracking-[0.4em] font-mono text-base bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-blue-400 font-bold placeholder-slate-600 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">New Password</label>
+            <input id="reset-new-password" type="password" required minlength="8" placeholder="At least 8 chars with letters & numbers" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Confirm New Password</label>
+            <input id="reset-confirm-password" type="password" required minlength="8" placeholder="Re-type new password" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" id="btn-reset-submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i> Update Password
+          </button>
+        </form>
+        <div class="text-center pt-2 border-t border-slate-800 text-xs">
+          <button type="button" onclick="switchAuthView('signin')" class="text-slate-400 hover:text-slate-300">Back to Sign In</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Client-side Logic & Chart Scripts -->
   <script>
     // Initialize Lucide Icons
@@ -1249,10 +1432,342 @@
       });
     }
 
+    // ------------------------------------------------------------------------
+    // Authentication & Identity Verification State & Handlers
+    // ------------------------------------------------------------------------
+    let currentUser = null;
+    let pendingEmailForVerification = '';
+    let pendingResetIdentifier = '';
+
+    function openAuthModal(view = 'signin') {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.remove('hidden');
+      clearAuthAlerts();
+      switchAuthView(view);
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('hidden');
+      clearAuthAlerts();
+    }
+
+    function switchAuthView(view) {
+      clearAuthAlerts();
+      const views = ['signin', 'register', 'verify', 'forgot', 'reset'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (el) el.classList.toggle('hidden', v !== view);
+      });
+      lucide.createIcons();
+    }
+
+    function showAuthError(msg) {
+      const box = document.getElementById('auth-alert-error');
+      const text = document.getElementById('auth-error-text');
+      const succ = document.getElementById('auth-alert-success');
+      succ.classList.add('hidden');
+      text.innerText = msg;
+      box.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function showAuthSuccess(msg) {
+      const box = document.getElementById('auth-alert-success');
+      const text = document.getElementById('auth-success-text');
+      const err = document.getElementById('auth-alert-error');
+      err.classList.add('hidden');
+      text.innerText = msg;
+      box.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function clearAuthAlerts() {
+      const err = document.getElementById('auth-alert-error');
+      const succ = document.getElementById('auth-alert-success');
+      if (err) err.classList.add('hidden');
+      if (succ) succ.classList.add('hidden');
+    }
+
+    function updateAuthHeaderUI() {
+      const btnSignIn = document.getElementById('btn-open-signin');
+      const badge = document.getElementById('user-profile-badge');
+      const nameEl = document.getElementById('user-display-name');
+
+      if (currentUser && currentUser.is_verified) {
+        btnSignIn.classList.add('hidden');
+        badge.classList.remove('hidden');
+        nameEl.innerText = currentUser.name;
+      } else {
+        btnSignIn.classList.remove('hidden');
+        badge.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    async function handleSignIn() {
+      clearAuthAlerts();
+      const identifier = document.getElementById('signin-identifier').value.trim();
+      const password = document.getElementById('signin-password').value;
+      const btn = document.getElementById('btn-signin-submit');
+
+      btn.disabled = true;
+      btn.innerText = 'Signing In...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('auth_token', data.token);
+          currentUser = data.user;
+          updateAuthHeaderUI();
+          closeAuthModal();
+        } else if (res.status === 403 && data.needs_verification) {
+          pendingEmailForVerification = data.email || identifier;
+          document.getElementById('verify-email-display').innerText = pendingEmailForVerification;
+          switchAuthView('verify');
+          showAuthError(data.detail || 'Email verification is required before signing in.');
+        } else {
+          showAuthError(data.detail || 'Invalid credentials. Please verify your email/phone and password.');
+        }
+      } catch (err) {
+        showAuthError('Unable to connect to authentication service. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="log-in" class="w-3.5 h-3.5"></i> Sign In';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleRegister() {
+      clearAuthAlerts();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim() || null;
+      const password = document.getElementById('reg-password').value;
+      const btn = document.getElementById('btn-register-submit');
+
+      btn.disabled = true;
+      btn.innerText = 'Creating Account...';
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          pendingEmailForVerification = email;
+          document.getElementById('verify-email-display').innerText = email;
+          switchAuthView('verify');
+          showAuthSuccess('Account registered! A 6-digit code was sent to your email. Enter it below to verify.');
+        } else {
+          showAuthError(data.detail || 'Registration failed. Please check your details and try again.');
+        }
+      } catch (err) {
+        showAuthError('Connection error during registration. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Register Account';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleVerifyEmail() {
+      clearAuthAlerts();
+      const code = document.getElementById('verify-code-input').value.trim();
+      const email = pendingEmailForVerification;
+      const btn = document.getElementById('btn-verify-submit');
+
+      if (!code || code.length !== 6) {
+        showAuthError('Please enter a valid 6-digit verification code.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Verifying...';
+
+      try {
+        const res = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('auth_token', data.token);
+          currentUser = data.user;
+          updateAuthHeaderUI();
+          showAuthSuccess('Email verified successfully! Welcome to the portal.');
+          setTimeout(() => closeAuthModal(), 1500);
+        } else {
+          showAuthError(data.detail || 'Verification failed. Code may be invalid or expired.');
+        }
+      } catch (err) {
+        showAuthError('Connection error during verification. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Verify & Sign In';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleResendCode() {
+      clearAuthAlerts();
+      const email = pendingEmailForVerification;
+      if (!email) {
+        showAuthError('Please provide an email address to resend code.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/resend-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAuthSuccess('A new verification code has been dispatched to your email.');
+        } else {
+          showAuthError(data.detail || 'Unable to resend code. Please try again.');
+        }
+      } catch (err) {
+        showAuthError('Connection error resending code.');
+      }
+    }
+
+    async function handleForgotPassword() {
+      clearAuthAlerts();
+      const identifier = document.getElementById('forgot-identifier').value.trim();
+      const btn = document.getElementById('btn-forgot-submit');
+
+      if (!identifier) {
+        showAuthError('Please enter your registered email or phone number.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Sending Code...';
+
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          pendingResetIdentifier = identifier;
+          switchAuthView('reset');
+          showAuthSuccess(`Identity verification code sent to your registered ${data.delivery_channel || 'contact'}. Code valid for 10 minutes.`);
+        } else {
+          showAuthError(data.detail || 'No account found matching this email or phone.');
+        }
+      } catch (err) {
+        showAuthError('Connection error. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="key" class="w-3.5 h-3.5"></i> Send Verification Code';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleResetPassword() {
+      clearAuthAlerts();
+      const code = document.getElementById('reset-code-input').value.trim();
+      const new_password = document.getElementById('reset-new-password').value;
+      const confirm_pwd = document.getElementById('reset-confirm-password').value;
+      const btn = document.getElementById('btn-reset-submit');
+
+      if (!code || code.length !== 6) {
+        showAuthError('Please enter a valid 6-digit verification code.');
+        return;
+      }
+
+      if (new_password !== confirm_pwd) {
+        showAuthError('New passwords do not match. Please re-enter.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Updating Password...';
+
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: pendingResetIdentifier, code, new_password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          switchAuthView('signin');
+          showAuthSuccess('Password reset successfully! Please sign in with your new password.');
+        } else {
+          showAuthError(data.detail || 'Password reset failed. Code may be invalid or expired.');
+        }
+      } catch (err) {
+        showAuthError('Connection error resetting password.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="lock" class="w-3.5 h-3.5"></i> Update Password';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleLogout() {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+        } catch (e) {}
+      }
+      localStorage.removeItem('auth_token');
+      currentUser = null;
+      updateAuthHeaderUI();
+    }
+
+    async function checkAuthSession() {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        updateAuthHeaderUI();
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          updateAuthHeaderUI();
+        } else {
+          localStorage.removeItem('auth_token');
+          currentUser = null;
+          updateAuthHeaderUI();
+        }
+      } catch (e) {
+        updateAuthHeaderUI();
+      }
+    }
+
     // Run on startup
     window.addEventListener('DOMContentLoaded', () => {
       initDashboardCharts();
       loadModels();
+      checkAuthSession();
     });
   </script>
 </body>
